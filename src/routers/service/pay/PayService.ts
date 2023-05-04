@@ -12,8 +12,6 @@ const smsDate = moment().format('YYYYMMDDHHMMss');
 
 export default class PayService extends ResController {
 
-
-    // todo DB 추가해야함
     public static async ready(userId: string) {
 
         try {
@@ -26,6 +24,9 @@ export default class PayService extends ResController {
 
             if(!userData)
                 return null;
+
+
+            //todo 결제후 결제정보 return 필요함.
 
             let result = await DB.Execute(QM.Insert("t_node_pay",{
                 user_id: userData.user_id,
@@ -110,6 +111,9 @@ export default class PayService extends ResController {
                     'Content-type': 'application/json', 'charset': 'utf-8'
                 }
             });
+
+
+            //todo 결제 추가 작업 필요함
 
             return result;
 

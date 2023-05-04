@@ -1,7 +1,6 @@
 {
   "name": "nodebase",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -56,5 +55,6 @@
     "@types/express-session": "^1.17.5",
     "@types/jsonwebtoken": "^8.5.9",
     "@types/morgan": "^1.9.3"
-  }
+  },
+  "description": ""
 }
