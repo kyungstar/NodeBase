@@ -12,13 +12,14 @@ const smsDate = moment().format('YYYYMMDDHHMMss');
 
 export default class PayService extends ResController {
 
-    public static async ready(userId: string) {
+    public static async ready(userId: string, phone: string) {
 
         try {
 
 
             let userData = await DB.getOne(QM.Select("t_node_user",{
-                user_id: userId
+                user_id: userId,
+                phone: phone
             }, ["*"]));
 
 
