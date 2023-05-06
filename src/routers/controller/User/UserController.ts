@@ -22,7 +22,7 @@ class UserController extends ResController {
 
 
     public userJoin = async (req: Request, res: Response) => {
-        Logger.info("Call API - " + req.originalUrl);
+        Logger.info("Call API - " + req.originalUrl + ' 뿌잉');
 
         let data = DataChecker.mergeObject(
             DataChecker.needArrCheck(res, req.body, [
@@ -44,14 +44,14 @@ class UserController extends ResController {
             nickName: string
         };
 
-        let result = await UserService.Join(res, data.loginId, data.pwd, data.userType, data.email, data.name, data.nickName, data.phoneNumber, data.gender
+
+        let result = await UserService.Join(data.loginId, data.pwd, data.userType, data.email, data.name, data.nickName, data.phoneNumber, data.gender
             , data.address, data.addressDetail);
 
-
         if(result)
-            return this.true(res,'JS0', {token: result})
+            return this.true(res,'JS0', {token: result});
         else
-            return this.false(res, 'LA')
+            return this.false(res, 'LA');
 
 
     }
@@ -68,7 +68,7 @@ class UserController extends ResController {
                 email: string
             }
 
-            let result = await UserService.emailCheck(res, data.email);
+            let result = await UserService.emailCheck(data.email);
 
             if(result)
                 return this.true(res, '01');
@@ -81,13 +81,34 @@ class UserController extends ResController {
             return this.err(res, 'A01', err);
         }
 
-
     }
 
     public userPhone = async (req: Request, res: Response) => {
 
+        try {
+
+            let data = DataChecker.mergeObject(
+                DataChecker.needArrCheck(res, req.body, ['phone'])
+            ) as {
+                phone: string
+            }
+
+            //todo 전화번호 추가 작업 필요
+            let result = await UserService.phoneCheck(data.phone);
+
+            if(result)
+                return this.true(res, '01');
+            else
+                return this.false(res, '01');
+
+
+        } catch (err) {
+            Logger.debug(err + ' is Occured');
+            return this.err(res, 'A01', err);
+        }
 
     }
+
 
 
 

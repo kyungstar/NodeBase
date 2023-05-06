@@ -5,7 +5,7 @@ import DBLoader from "./ServerLoader/Target/Mysql";
 //import AdminLoader from "./ServerLoader/Target/Admin";
 //import DFSLoader from "./ServerLoader/Target/DFS";
 
-import Logger from "../src/modules/Logger";
+import Logger from ".//modules/Logger";
 
 (async function () {
 

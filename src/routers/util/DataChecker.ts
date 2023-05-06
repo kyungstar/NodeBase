@@ -19,14 +19,14 @@ class DataChecker extends ResController {
     // 토큰 관리자 검증하기
     public loadJWTAdminCheck(res: any, objData: any) {
 
-        if(objData.userType !== 'ADMIN')
+        if (objData.userType !== 'ADMIN')
             return this.false(res, 'A01')
     }
 
 
     // 토큰 사용자 검증하기
     public loadJWTUserCheck(res: any, objData: any) {
-        if(objData.userType !== 'USER' && objData.userType !== 'ADMIN')
+        if (objData.userType !== 'USER' && objData.userType !== 'ADMIN')
             return this.false(res, 'U01');
     }
 
@@ -48,7 +48,7 @@ class DataChecker extends ResController {
 
         }
 
-        if(dataFailList.length > 0){
+        if (dataFailList.length > 0) {
             return this.dataCheck(res, dataFailList, ' Is Essential Data');
         }
 
