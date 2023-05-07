@@ -40,6 +40,7 @@ class QueryMaker extends ResController{
 
     }
 
+    // todo 수정해야함
     Select = (tblName: string, selectObj: any, selectList: string[]) => {
 
         try {
@@ -55,22 +56,16 @@ class QueryMaker extends ResController{
 
             query += " " +
                 "   FROM " + tblName +
-                "   WHERE ";
+                "   WHERE 1 = 1 ";
 
             for (let k in selectObj) {
-                try {
-                    if (selectObj[k][0] === '\\')
-                        query += k + " = " + selectObj[k].slice(1, selectObj[k].length) + 'AND';
-                    else
-                        query += k + " = " + escape(selectObj[k]) + 'AND';
 
-                } catch (err) {
-                    query += k + " = " + escape(selectObj[k]) + 'AND';
+                if(selectObj[k][0] === '\\')
+                    query += " AND " + k + selectObj[k].slice(1, selectObj[k].length);
+                else
+                    query += " AND " + k + " = " + escape(selectObj[k]);
 
-                }
             }
-
-            query = query.slice(0, -3);
 
             return query;
 
