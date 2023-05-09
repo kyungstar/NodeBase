@@ -28,33 +28,14 @@ class MariaDB {
         }
     }
 
-    async query(statement: string) {
-        let conn = await this.getConnection();
-
-        try {
-            let result = await conn.query(statement.trim());
-
-            await conn.commit();
-            await conn.release();
-
-            return {
-                affectedRows: result.affectedRows
-            };
-
-        } catch (err) {
-            Logger.debug('Query Insert Fail', err);
-            await conn.release();
-            return null;
-
-        }
-
-    }
-
     async getOne(statement: string) {
         let conn = await this.getConnection();
 
         try {
             let result = await conn.query(statement.trim());
+
+            Logger.debug("Query result - " + (!!result));
+            Logger.debug(statement);
 
             await conn.commit();
             await conn.release();
@@ -68,29 +49,6 @@ class MariaDB {
 
         }
 
-    }
-
-    async getAll(statement: string) {
-        let conn = await this.getConnection();
-
-        try {
-            await conn.beginTransaction();
-
-            let result = await conn.query(statement);
-
-
-            Logger.debug("Query result - " + (!!result));
-
-            await conn.commit();
-            await conn.release();
-
-            return result;
-
-        } catch (err) {
-            await conn.rollback();
-            await conn.release();
-            Logger.debug('Query Execute Fail', err);
-        }
     }
 
 
@@ -123,7 +81,7 @@ class MariaDB {
         }
     }
 
-    async Execute(statement: string) {
+    async Executer(statement: string) {
         let conn = await this.getConnection();
 
         try {
@@ -133,10 +91,10 @@ class MariaDB {
             await conn.commit();
             await conn.release();
 
-            return {
-                affectedRows: result.affectedRows,
-                insertId: parseInt(result.insertId)
-            };
+            Logger.debug("Query result - " + (!!result));
+            Logger.debug(statement);
+
+            return result.affectedRows;
 
         } catch (err) {
             await conn.rollback();
@@ -147,70 +105,29 @@ class MariaDB {
 
     }
 
-    // 커밋 안되도록 SQL 실행
-    async NotCommitExecute(statement: string) {
+    async getInsertId(statement: string) {
         let conn = await this.getConnection();
 
         try {
+
             let result = await conn.query(statement.trim());
-
-            await conn.release();
-
-            return {
-                affectedRows: result.affectedRows,
-                insertId: result.insertId
-            };
-
-        } catch (err) {
-            await conn.rollback();
-            await conn.release();
-            return null;
-
-        }
-
-    }
-
-    // 커밋 호출
-    async SendCommit() {
-        let conn = await this.getConnection();
-
-        try {
 
             await conn.commit();
             await conn.release();
 
-            return conn;
+            Logger.debug("Query result - " + (!!result));
+            Logger.debug(statement);
+
+            return result.insertId;
 
         } catch (err) {
-            await conn.release();
-            return null;
-
-        }
-
-    }
-
-    // 롤백 호출
-    async SendRollback(statement: string) {
-        let conn = await this.getConnection();
-
-        try {
-            let result = await conn.query(statement.trim());
-
             await conn.rollback();
             await conn.release();
-
-            return {
-                affectedRows: result.affectedRows
-            };
-
-        } catch (err) {
-            await conn.release();
             return null;
 
         }
 
     }
-
 
 
 }

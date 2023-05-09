@@ -7,7 +7,7 @@ class DataChecker extends ResController {
 
 
     // 토큰 꺼내기
-    public loadJWTValue(objData: any) {
+/*    public loadJWTValue(objData: any) {
         return {
             userId: objData.userId,
             userType: objData.userType
@@ -26,8 +26,9 @@ class DataChecker extends ResController {
     public loadJWTUserCheck(res: any, objData: any) {
         if(objData.userType !== 'USER' && objData.userType !== 'ADMIN')
             return this.false(res, 'U01');
-    }
+    }*/
 
+    
     // 필수 값 검증
     public needArrCheck(res: any, objData: any, needArr: string[]) {
 

@@ -1,9 +1,6 @@
-//import UtilController from "../../controller/UtilController";
 import Config from "../../../../config"
 import DB from "../../../modules/Mysql";
 import QM from "../../../modules/QueryMaker";
-import MailService from "../mail/MailService";
-import ResController from "../../controller/ResController";
 import Logger from "../../../modules/Logger";
 import {createToken, JwtModel} from "../../../middlewares/JwtAuth";
 
@@ -32,7 +29,7 @@ export default class UserService {
 
             const isAuth = authType === 'USER_JOIN' ? '0' : 1;
 
-            let result = await DB.query(QM.Update("t_node_login",{
+            let result = await DB.Executer(QM.Update("t_node_login",{
                 initial_auth: 1,
                 is_auth: 0,
             },{
@@ -173,10 +170,12 @@ export default class UserService {
                 };
             }
 
+
+            // todo 트랜잭션 처리 필요함.
             // 비밀번호 불일치
             if (pwd !== loginData.pwd) {
 
-                let result = await DB.query(QM.Update("t_node_login", {try_cnt: '\\try_cnt + 1'}, {user_id: loginData.user_id}))
+                let result = await DB.Executer(QM.Update("t_node_login", {try_cnt: '\\try_cnt + 1'}, {user_id: loginData.user_id}))
 
                 if (result)
                     return {result: false, message: 'IP0'};
@@ -185,7 +184,7 @@ export default class UserService {
 
             }
 
-            let result = await DB.query(QM.Update("t_node_login", {try_cnt: 0}, {user_id: loginData.user_id}))
+            let result = await DB.Executer(QM.Update("t_node_login", {try_cnt: 0}, {user_id: loginData.user_id}))
 
             if(result) {
                 const token = createToken(new JwtModel(({u: userData.user_id, t: userData.user_type} as JwtModel)));
@@ -218,7 +217,7 @@ export default class UserService {
             }
 
 
-            let result = await DB.query(QM.Update("t_node_login", {
+            let result = await DB.Executer(QM.Update("t_node_login", {
                 auth_pwd: newPwd,
                 auth_expire_date: '\\NOW() + INTERVAL 3 MINUTE'
             }, {login_id: loginId}));
@@ -263,7 +262,7 @@ export default class UserService {
         try {
 
 
-            let result = await DB.query(QM.Update("t_node_login", {
+            let result = await DB.Executer(QM.Update("t_node_login", {
                 pwd: crypto.createHash('sha512').update(newPwd).digest('hex')
             }, {
                 login_id: loginId
@@ -282,7 +281,7 @@ export default class UserService {
 
         try {
 
-            let result = await DB.query(QM.Update("t_node_user", {
+            let result = await DB.Executer(QM.Update("t_node_user", {
                 email: email,
                 phone_number: phoneNumber,
                 address: address,
@@ -305,7 +304,7 @@ export default class UserService {
 
         try {
 
-            let result = await DB.query(QM.Update("t_node_user", {
+            let result = await DB.Executer(QM.Update("t_node_user", {
                 status: status,
             }, {
                 user_id: targetUserId
@@ -323,7 +322,7 @@ export default class UserService {
 
         try {
 
-            let result = await DB.query(QM.Update("t_node_user", {
+            let result = await DB.Executer(QM.Update("t_node_user", {
                 warn: '\\warn + 1',
             }, {
                 user_id: targetUserId
