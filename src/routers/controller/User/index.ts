@@ -26,10 +26,10 @@ router.post("/send/auth", UserController.sendAuth)
 // 인증하기 🆗
 router.post("/user/auth", UserController.userAuth)
 
-// todo 비밀번호 변경하기
-//router.post("/user/auth", UserController.resetPw)
+// 비밀번호 변경하기
+router.post("/user/password", UserController.resetPw)
 
-// todo 고객정보 변경하기
-//router.post("/user/auth", UserController.resetPw)
+// 고객정보 변경하기
+router.post("/user/update", UserController.updateUser)
 
 export default router;

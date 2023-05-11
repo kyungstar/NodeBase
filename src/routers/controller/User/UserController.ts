@@ -1,4 +1,3 @@
-
 import {Request, Response} from "express";
 
 import ResController from "../ResController";
@@ -9,6 +8,7 @@ import DataChecker from "../../util/DataChecker";
 
 import UserService from "../../service/user/UserService";
 import MailService from "../../service/mail/MailService";
+import {log} from "winston";
 
 class UserController extends ResController {
 
@@ -34,7 +34,7 @@ class UserController extends ResController {
 
             const userData = await UserService.checkUserAuth(data.loginId, data.authType, data.authPwd);
 
-            if(userData)
+            if (userData)
                 this.true(res, 'AS0')
             else
                 this.false(res, 'AF0')
@@ -64,21 +64,21 @@ class UserController extends ResController {
 
         const userData = await UserService.getUserData(data.loginId);
 
-        if(!userData){
+        if (!userData) {
             this.false(res, '01')
             return;
         }
 
         const userAuthData = await UserService.getUserAuthData(data.loginId, data.authType);
 
-        if(!userAuthData){
+        if (!userAuthData) {
             this.false(res, '01');
             return;
         }
 
         const mailResult = await MailService.authEmail(userData.email, data.authType, userAuthData.cotents);
 
-        if(mailResult.accepted[0].includes(userData.email))
+        if (mailResult.accepted[0].includes(userData.email))
             this.true(res, 'UA0');
         else
             this.false(res, 'UA1')
@@ -109,19 +109,19 @@ class UserController extends ResController {
             nickName: string
         };
 
-       if(typeof data == 'string') {
-           return this.clientReqError(res, data);
-       }
+        if (typeof data == 'string') {
+            return this.clientReqError(res, data);
+        }
 
         let result = await UserService.Join(data.loginId, data.pwd, data.userType, data.email, data.name, data.nickName, data.phoneNumber, data.gender
             , data.address, data.addressDetail);
 
-        if(!result)
+        if (!result)
             return this.false(res, 'LA');
 
         const mailResult = await MailService.authEmail(data.email, 'USER_JOIN', result.contents);
 
-        if(mailResult.accepted[0].includes(data.email))
+        if (mailResult.accepted[0].includes(data.email))
             this.true(res, 'UA0');
         else
             this.false(res, 'UA1')
@@ -132,25 +132,22 @@ class UserController extends ResController {
         Logger.info("Call API - " + req.originalUrl);
 
         let data = DataChecker.mergeObject(
-            DataChecker.stringArrCheck(res, req.body, [
-                "loginId", "pwd"
-            ], true)
+            DataChecker.stringArrCheck(res, req.body, ["loginId", "pwd"], true)
         ) as {
             loginId: string,
             pwd: string
         };
 
 
-        if(typeof data == 'string') {
+        if (typeof data == 'string') {
             return this.clientReqError(res, data);
         }
-
 
         let accessInfo = await UserService.Access(res, data.loginId, data.pwd)
 
         // 세션 등록 추가
-        if (accessInfo.result)
-            return this.true(res, 'TS1', {token: accessInfo.token});
+        if (accessInfo)
+            return this.true(res, 'TS1', {token: accessInfo});
         else
             return this.false(res, accessInfo.message);
 
@@ -168,7 +165,7 @@ class UserController extends ResController {
 
             let result = await UserService.emailCheck(data.email);
 
-            if(result)
+            if (result)
                 return this.true(res, '01');
             else
                 return this.false(res, '01');
@@ -194,7 +191,7 @@ class UserController extends ResController {
             //todo 전화번호 추가 작업 필요
             let result = await UserService.phoneCheck(data.phoneNumber);
 
-            if(result)
+            if (result)
                 return this.true(res, '01');
             else
                 return this.false(res, '01');
@@ -207,10 +204,68 @@ class UserController extends ResController {
 
     }
 
+    public resetPw = async (req: Request, res: Response) => {
+
+        try {
+
+            let data = DataChecker.mergeObject(
+                DataChecker.needArrCheck(res, req.body, ['loginId', 'originPwd', 'newPwd'])
+            ) as {
+                loginId: string,
+                originPwd: string,
+                newPwd: string
+            }
+
+            if (typeof data == 'string') {
+                return this.clientReqError(res, data);
+            }
+
+            let updateResult = await UserService.updatePwd(data.loginId, data.originPwd, data.newPwd);
+
+            if (updateResult.result)
+                this.true(res, updateResult);
+            else
+                this.false(res, updateResult);
+
+        } catch (err) {
+            Logger.debug(err + 'is Occured');
+            return this.err(res, 'A01', err);
+        }
+    }
 
 
+    public updateUser = async (req: Request, res: Response) => {
+
+        try {
+
+            let data = DataChecker.mergeObject(
+                DataChecker.needArrCheck(res, req.body, ['loginId']),
+                DataChecker.stringArrCheck(res, req.body, ['email', 'phoneNumber', 'address', 'addressDetail'], false)
+            ) as {
+                loginId: string,
+                email: string,
+                phoneNumber: string,
+                address: string,
+                addressDetail: string
+            }
+
+            if (typeof data == 'string') {
+                return this.clientReqError(res, data);
+            }
+
+            let result = await UserService.updateUser(data.loginId, data.email, data.phoneNumber, data.address, data.addressDetail);
+
+            if (result)
+                this.true(res, '01');
+            else
+                this.false(res, '02');
 
 
+        } catch (err) {
+            Logger.debug(err + 'is Occured');
+            return this.err(res, 'A01', err);
+        }
+    }
 
 }
 

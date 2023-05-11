@@ -1,16 +1,18 @@
 import Config from "../../../../config"
 import DB from "../../../modules/Mysql";
 import QM from "../../../modules/QueryMaker";
+import ResultBox from '../../dto/ResultBox'
+
 import Logger from "../../../modules/Logger";
 import {createToken, JwtModel} from "../../../middlewares/JwtAuth";
+
 
 const escape = require('mysql').escape;
 const moment = require('moment');
 
-
 const crypto = require("crypto");
 
-export default class UserService {
+export default class PayService extends ResultBox {
 
 
     public static async checkUserAuth(loginId: string, authType: string, authPwd: string) {
@@ -24,19 +26,19 @@ export default class UserService {
                 auth_expire_date: '\\> NOW()'
             }, ["*"]));
 
-            if(!authData)
+            if (!authData)
                 return false;
 
             const isAuth = authType === 'USER_JOIN' ? '0' : 1;
 
-            let result = await DB.Executer(QM.Update("t_node_login",{
+            let result = await DB.Executer(QM.Update("t_node_login", {
                 initial_auth: 1,
                 is_auth: 0,
-            },{
+            }, {
                 login_id: loginId
             }));
 
-            if(result)
+            if (result)
                 return true;
             else
                 return false;
@@ -52,7 +54,7 @@ export default class UserService {
 
         try {
 
-           let result = await DB.getOne(`
+            let result = await DB.getOne(`
                 SELECT *
                 FROM t_node_user
                 WHERE CONVERT(AES_DECRYPT(UNHEX(phone_number), ${escape(Config.DB.encrypt_key)}) USING utf8) = ${escape(phoneNumber)}
@@ -103,10 +105,10 @@ export default class UserService {
                 newPwd += pwd.substring(rnum, rnum + 1)
             }
 
+            console.log(pwd);
 
-
-            // todo 암호화 변경
             await DB.get([
+
                 QM.Insert("t_node_user", {
                     user_id: userId,
                     login_id: loginId,
@@ -123,7 +125,7 @@ export default class UserService {
                 QM.Insert("t_node_login", {
                     user_id: userId,
                     login_id: loginId,
-                    pwd: crypto.createHash('sha512').update(pwd).digest('hex'),
+                    pwd: pwd,
                     auth_type: 'USER_JOIN',
                     auth_pwd: newPwd,
                     auth_expire_date: '\\NOW() + INTERVAL 3 MINUTE',
@@ -158,18 +160,14 @@ export default class UserService {
 
             // 로그인정보 존재하지 않음.
             if (!loginData)
-                return {
-                    result: false,
-                    message: 'NL0'
-                };
+                return {result: false, message: 'NL0'};
 
             if (loginData.initial_auth === 0 || loginData.try_cnt === 3 || loginData.try_cnt > 3) {
-                return {
-                    result: false,
-                    message: 'PT0'
-                };
+                Logger.info(loginData.initial_auth, 'loginData');
+                Logger.info(loginData.try_cnt, 'loginData');
+                Logger.info(loginData.initial_auth, 'loginData');
+                return {result: false, message: 'PT0'};
             }
-
 
             // todo 트랜잭션 처리 필요함.
             // 비밀번호 불일치
@@ -178,25 +176,21 @@ export default class UserService {
                 let result = await DB.Executer(QM.Update("t_node_login", {try_cnt: '\\try_cnt + 1'}, {user_id: loginData.user_id}))
 
                 if (result)
-                    return {result: false, message: 'IP0'};
+                    return {result: false, code: 'USO'};
                 else
-                    return {result: false, message: 'IP1'};
+                    return {result: false, code: 'USO'};
 
             }
 
             let result = await DB.Executer(QM.Update("t_node_login", {try_cnt: 0}, {user_id: loginData.user_id}))
 
-            if(result) {
+            if (result) {
                 const token = createToken(new JwtModel(({u: userData.user_id, t: userData.user_type} as JwtModel)));
 
-                return {
-                    result: true,
-                    token: token
-                }
+                return token;
             } else {
                 return false;
             }
-
 
 
         } catch (err) {
@@ -257,18 +251,50 @@ export default class UserService {
         }
     }
 
-    public static async updatePwd(loginId: string, newPwd: string) {
+    public static async getUserLoginData(loginId: string) {
 
         try {
 
 
+            let loginData = await DB.getOne(QM.Select("t_node_login", {
+                login_id: loginId
+            }, ["*"]));
+
+            if (loginData)
+                return loginData;
+            else
+                return false;
+
+        } catch (err) {
+            return err;
+        }
+    }
+
+    public static async updatePwd(loginId: string, originPwd: string, newPwd: string) {
+
+        try {
+
+
+            let loginData = await this.getUserLoginData(loginId);
+
+            if (!loginData)
+                return {result: false, code: 'NEU'}
+
+
+            if (originPwd !== loginData.pwd)
+                return {result: false, code: 'OPN'}
+
+
             let result = await DB.Executer(QM.Update("t_node_login", {
-                pwd: crypto.createHash('sha512').update(newPwd).digest('hex')
+                pwd: newPwd
             }, {
                 login_id: loginId
             }))
 
-            return result;
+            if (result)
+                return true;
+            else
+                return false;
 
 
         } catch (err) {
@@ -277,7 +303,7 @@ export default class UserService {
     }
 
 
-    public static async updateUser(loginId: string, email: string, phoneNumber: string, address: string, addressDetail: string, zipCode: string) {
+    public static async updateUser(loginId: string, email: string, phoneNumber: string, address: string, addressDetail: string) {
 
         try {
 
@@ -286,13 +312,11 @@ export default class UserService {
                 phone_number: phoneNumber,
                 address: address,
                 address_detail: addressDetail,
-                zip_code: zipCode
             }, {
                 login_id: loginId
             }))
 
             return result;
-
 
         } catch (err) {
             return err;
@@ -343,5 +367,5 @@ export default class UserService {
         }
     }
 
-}
 
+}
