@@ -38,12 +38,13 @@ class Config {
 
     DB: {
         host: string;
-        port: string;
+        port: number;
         user: string;
         password: string;
         database: string;
         connectionLimit: string;
-        encrypt_key: string
+        encrypt_key: string;
+        entity_path: string;
     }
 
     SMS: {
@@ -79,12 +80,13 @@ class Config {
 
         this.DB = {
             host: process.env.DB_HOST,
-            port: process.env.DB_PORT,
+            port: parseInt(process.env.DB_PORT, 10),
             user: process.env.USER,
             password: process.env.PASSWORD,
             database: process.env.DATABASE,
             connectionLimit: process.env.connectionLimit,
-            encrypt_key: process.env.ENCRYPT_KEY
+            encrypt_key: process.env.ENCRYPT_KEY,
+            entity_path: process.env.ENTITY_PATH
         }
 
         this.SMS = {

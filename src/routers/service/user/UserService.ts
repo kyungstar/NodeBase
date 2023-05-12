@@ -2,13 +2,17 @@ import Config from "../../../../config"
 import DB from "../../../modules/Mysql";
 import QM from "../../../modules/QueryMaker";
 import ResultBox from '../../dto/ResultBox'
+import { User } from '../../entities/User/UserEntity';
+
 
 import Logger from "../../../modules/Logger";
 import {createToken, JwtModel} from "../../../middlewares/JwtAuth";
+import {getRepository} from "typeorm";
 
 
 const escape = require('mysql').escape;
 const moment = require('moment');
+
 
 const crypto = require("crypto");
 
@@ -147,12 +151,21 @@ export default class PayService extends ResultBox {
 
         try {
 
-            let userData = await DB.getOne(QM.Select("t_node_user", {
+            const userRepository = getRepository(User);
+
+            const newUser = new User();
+            newUser.name = 'John Doe';
+            newUser.email = 'john@example.com';
+
+            await userRepository.save(newUser);
+            console.log('사용자 생성 완료');
+            /*let userData = await DB.getOne(QM.Select("t_node_user", {
                 login_id: loginId
             }, ["*"]));
-
-            if (!userData)
+             if (!userData)
                 return null;
+*/
+
 
             let loginData = await DB.getOne(QM.Select("t_node_login", {
                 login_id: loginId
@@ -184,13 +197,13 @@ export default class PayService extends ResultBox {
 
             let result = await DB.Executer(QM.Update("t_node_login", {try_cnt: 0}, {user_id: loginData.user_id}))
 
-            if (result) {
+          /*  if (result) {
                 const token = createToken(new JwtModel(({u: userData.user_id, t: userData.user_type} as JwtModel)));
 
                 return token;
             } else {
                 return false;
-            }
+            }*/
 
 
         } catch (err) {
@@ -292,13 +305,13 @@ export default class PayService extends ResultBox {
             }))
 
             if (result)
-                return true;
+                return ResultBox.JustTrue('01');
             else
-                return false;
+                return ResultBox.JustFalse('01');
 
 
         } catch (err) {
-            return err;
+            return ResultBox.JustErr(err)
         }
     }
 

@@ -143,6 +143,8 @@ class UserController extends ResController {
             return this.clientReqError(res, data);
         }
 
+        Logger.info('?');
+
         let accessInfo = await UserService.Access(res, data.loginId, data.pwd)
 
         // 세션 등록 추가
@@ -222,10 +224,10 @@ class UserController extends ResController {
 
             let updateResult = await UserService.updatePwd(data.loginId, data.originPwd, data.newPwd);
 
-            if (updateResult.result)
+       /*     if (updateResult.result)
                 this.true(res, updateResult);
             else
-                this.false(res, updateResult);
+                this.false(res, updateResult);*/
 
         } catch (err) {
             Logger.debug(err + 'is Occured');
