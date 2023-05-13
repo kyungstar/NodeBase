@@ -116,6 +116,8 @@ class UserController extends ResController {
         let result = await UserService.Join(data.loginId, data.pwd, data.userType, data.email, data.name, data.nickName, data.phoneNumber, data.gender
             , data.address, data.addressDetail);
 
+        console.log(result);
+
         if (!result)
             return this.false(res, 'LA');
 

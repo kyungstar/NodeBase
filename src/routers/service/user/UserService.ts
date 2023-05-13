@@ -2,12 +2,12 @@ import Config from "../../../../config"
 import DB from "../../../modules/Mysql";
 import QM from "../../../modules/QueryMaker";
 import ResultBox from '../../dto/ResultBox'
-import { User } from '../../entities/User/UserEntity';
+import {User, UserLogin} from '../../entities/User/UserEntity';
 
 
 import Logger from "../../../modules/Logger";
 import {createToken, JwtModel} from "../../../middlewares/JwtAuth";
-import {getRepository} from "typeorm";
+import {getRepository, getConnection, createConnection} from "typeorm";
 
 
 const escape = require('mysql').escape;
@@ -109,7 +109,42 @@ export default class PayService extends ResultBox {
                 newPwd += pwd.substring(rnum, rnum + 1)
             }
 
-            console.log(pwd);
+
+            const queryRunner = getConnection().createQueryRunner();
+
+            await queryRunner.connect();
+            await queryRunner.startTransaction();
+
+            try {
+                // 사용자를 데이터베이스에 삽입하는 작업
+                const user = new User();
+                const userLogin = new UserLogin();
+
+                user.name = name;
+                user.email = email;
+
+                userLogin.id = userId;
+                userLogin.pwd = pwd;
+                userLogin.try_cnt = 0;
+                userLogin.initial_auth = 0;
+                userLogin.is_auth = 0;
+                userLogin.auth_expire_date = moment().format('YYYY-MM-DD HH:MM');
+
+                await queryRunner.manager.save(user);
+                await queryRunner.manager.save(userLogin);
+
+                // 트랜잭션 커밋
+                await queryRunner.commitTransaction();
+            } catch (err) {
+                // 에러 발생 시 트랜잭션 롤백
+                await queryRunner.rollbackTransaction();
+                throw err;
+            } finally {
+                // 쿼리 러너 및 연결 닫기
+                await queryRunner.release();
+            }
+/*
+
 
             await DB.get([
 
@@ -140,6 +175,7 @@ export default class PayService extends ResultBox {
 
             return {contents: '고객님의 메일 인증 비밀번호는 ' + newPwd + '입니다.'}
 
+*/
 
         } catch (err) {
             return err;
