@@ -113,20 +113,13 @@ class UserController extends ResController {
             return this.clientReqError(res, data);
         }
 
-        let result = await UserService.Join(data.loginId, data.pwd, data.userType, data.email, data.name, data.nickName, data.phoneNumber, data.gender
+        let userJoinResult = await UserService.Join(data.loginId, data.pwd, data.userType, data.email, data.name, data.nickName, data.phoneNumber, data.gender
             , data.address, data.addressDetail);
 
-        console.log(result);
-
-        if (!result)
-            return this.false(res, 'LA');
-
-        const mailResult = await MailService.authEmail(data.email, 'USER_JOIN', result.contents);
-
-        if (mailResult.accepted[0].includes(data.email))
-            this.true(res, 'UA0');
+        if(userJoinResult.result)
+            return this.true(res, userJoinResult.code);
         else
-            this.false(res, 'UA1')
+            return this.false(res, userJoinResult.code);
 
     }
 
@@ -145,7 +138,6 @@ class UserController extends ResController {
             return this.clientReqError(res, data);
         }
 
-        Logger.info('?');
 
         let accessInfo = await UserService.Access(res, data.loginId, data.pwd)
 
@@ -167,12 +159,16 @@ class UserController extends ResController {
                 email: string
             }
 
-            let result = await UserService.emailCheck(data.email);
+            if (typeof data == 'string') {
+                return this.clientReqError(res, data);
+            }
 
-            if (result)
-                return this.true(res, '01');
+            let emailCheckResult = await UserService.emailCheck(data.email);
+
+            if (emailCheckResult.result)
+                return this.true(res, emailCheckResult.code);
             else
-                return this.false(res, '01');
+                return this.false(res, emailCheckResult.code);
 
 
         } catch (err) {
@@ -190,6 +186,10 @@ class UserController extends ResController {
                 DataChecker.needArrCheck(res, req.body, ['phoneNumber'])
             ) as {
                 phoneNumber: string
+            }
+
+            if (typeof data == 'string') {
+                return this.clientReqError(res, data);
             }
 
             //todo 전화번호 추가 작업 필요

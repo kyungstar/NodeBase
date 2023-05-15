@@ -8,6 +8,8 @@ import {User, UserLogin} from '../../entities/User/UserEntity';
 import Logger from "../../../modules/Logger";
 import {createToken, JwtModel} from "../../../middlewares/JwtAuth";
 import {getRepository, getConnection, createConnection} from "typeorm";
+import MailService from "../mail/MailService";
+import {AES} from "crypto-js";
 
 
 const escape = require('mysql').escape;
@@ -58,16 +60,17 @@ export default class PayService extends ResultBox {
 
         try {
 
-            let result = await DB.getOne(`
-                SELECT *
-                FROM t_node_user
-                WHERE CONVERT(AES_DECRYPT(UNHEX(phone_number), ${escape(Config.DB.encrypt_key)}) USING utf8) = ${escape(phoneNumber)}
-            `);
+            const userRepository = getRepository(User);
 
-            if (result)
-                return false;
-            else
-                return true;
+// 검색된 사용자를 출력하거나 원하는 처리를 수행
+            const searchUserData = await userRepository
+                .createQueryBuilder('user')
+                .where(`CONVERT(AES_DECRYPT(UNHEX(phone_number), '${Config.DB.encrypt_key}') USING utf8)`, {
+                    phone_number: phoneNumber,
+                })
+                .getOne();
+
+            console.log(searchUserData);
 
         } catch (err) {
             Logger.debug(err + ' is Occured')
@@ -80,24 +83,28 @@ export default class PayService extends ResultBox {
 
         try {
 
-            let result = await DB.getOne(QM.Select("t_node_user", {
-                email: email
-            }, ["*"]))
+            // email 컬럼 검색
+            const userRepository = getRepository(User);
 
-            if (result)
-                return false;
+            // 검색된 사용자를 출력하거나 원하는 처리를 수행
+            const searchUserData = await userRepository.findOne({ where: { email: email } });
+
+            if(searchUserData)
+                return ResultBox.JustFalse('01');
             else
-                return true;
+                return ResultBox.JustTrue('01');
 
         } catch (err) {
-            Logger.debug(err + ' is Occured')
-            return false;
+            return ResultBox.JustErr(err);
         }
     }
 
 
     public static async Join(loginId: string, pwd: string, userType: string, email: string, name: string, nickName: string,
                              phoneNumber: string, gender: string, address: string, addressDetail: string) {
+
+        const queryRunner = getConnection().createQueryRunner();
+
 
         try {
 
@@ -110,74 +117,57 @@ export default class PayService extends ResultBox {
             }
 
 
-            const queryRunner = getConnection().createQueryRunner();
-
             await queryRunner.connect();
             await queryRunner.startTransaction();
 
-            try {
-                // 사용자를 데이터베이스에 삽입하는 작업
-                const user = new User();
-                const userLogin = new UserLogin();
+            // 사용자를 데이터베이스에 삽입하는 작업
+            const user = new User();
+            const userLogin = new UserLogin();
 
-                user.name = name;
-                user.email = email;
+            user.user_id = userId;
+            user.name = name;
+            user.email = email;
+            user.phoneNumber = phoneNumber;
+            user.gender = gender;
+            user.address = address;
+            user.addressDetail = addressDetail;
 
-                userLogin.id = userId;
-                userLogin.pwd = pwd;
-                userLogin.try_cnt = 0;
-                userLogin.initial_auth = 0;
-                userLogin.is_auth = 0;
-                userLogin.auth_expire_date = moment().format('YYYY-MM-DD HH:MM');
+            userLogin.user_id = userId;
+            userLogin.loginId = loginId;
+            userLogin.pwd = pwd;
+            userLogin.tryCount = 0;
+            userLogin.initialAuth = 0;
+            userLogin.isAuth = 0;
+            userLogin.authType = 'USER_JOIN';
+            userLogin.authPwd = newPwd;
+            userLogin.authExpireDate = moment().format('YYYY-MM-DD HH:MM');
 
-                await queryRunner.manager.save(user);
-                await queryRunner.manager.save(userLogin);
+            let result = await queryRunner.manager.save([user, userLogin]);
 
-                // 트랜잭션 커밋
-                await queryRunner.commitTransaction();
-            } catch (err) {
-                // 에러 발생 시 트랜잭션 롤백
-                await queryRunner.rollbackTransaction();
-                throw err;
-            } finally {
-                // 쿼리 러너 및 연결 닫기
-                await queryRunner.release();
+            if(result) {
+
+                const mailResult = await MailService.authEmail(email, 'USER_JOIN', '인증번호는 ' + newPwd + ' 입니다.');
+
+                if (mailResult.accepted[0].includes(email)) {
+
+                    await queryRunner.commitTransaction();
+                    await queryRunner.release();
+                    return ResultBox.JustTrue('01');
+                } else {
+                    await queryRunner.rollbackTransaction();
+                    await queryRunner.release();
+                    return ResultBox.JustFalse('02');
+                }
+
+            } else {
+                return ResultBox.JustFalse('01');
             }
-/*
 
 
-            await DB.get([
-
-                QM.Insert("t_node_user", {
-                    user_id: userId,
-                    login_id: loginId,
-                    user_type: userType,
-                    email: email,
-                    user_name: '\\(HEX(AES_ENCRYPT(' + escape(name) + ', ' + escape(Config.DB.encrypt_key) + ')))',
-                    nickname: nickName,
-                    phone_number: '\\(HEX(AES_ENCRYPT(' + escape(phoneNumber) + ', ' + escape(Config.DB.encrypt_key) + ')))',
-                    gender: gender,
-                    address: address,
-                    address_detail: addressDetail,
-                    status: 50
-                }),
-                QM.Insert("t_node_login", {
-                    user_id: userId,
-                    login_id: loginId,
-                    pwd: pwd,
-                    auth_type: 'USER_JOIN',
-                    auth_pwd: newPwd,
-                    auth_expire_date: '\\NOW() + INTERVAL 3 MINUTE',
-                    reg_date: '\\NOW()'
-                })
-            ])
-
-
-            return {contents: '고객님의 메일 인증 비밀번호는 ' + newPwd + '입니다.'}
-
-*/
 
         } catch (err) {
+            await queryRunner.rollbackTransaction();
+            await queryRunner.release();
             return err;
         }
     }
@@ -233,13 +223,13 @@ export default class PayService extends ResultBox {
 
             let result = await DB.Executer(QM.Update("t_node_login", {try_cnt: 0}, {user_id: loginData.user_id}))
 
-          /*  if (result) {
-                const token = createToken(new JwtModel(({u: userData.user_id, t: userData.user_type} as JwtModel)));
+            /*  if (result) {
+                  const token = createToken(new JwtModel(({u: userData.user_id, t: userData.user_type} as JwtModel)));
 
-                return token;
-            } else {
-                return false;
-            }*/
+                  return token;
+              } else {
+                  return false;
+              }*/
 
 
         } catch (err) {
