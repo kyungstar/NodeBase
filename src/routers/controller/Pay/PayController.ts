@@ -10,8 +10,8 @@ class PayController extends ResController {
     public ready = async (req: Request, res: Response) => {
         let data = DataChecker.mergeObject(
             DataChecker.needArrCheck(res, req.body, ['phone']),
-            DataChecker.loadJWTValue(req.body),
-            DataChecker.loadJWTUserCheck(res, req.body)
+          //  DataChecker.loadJWTValue(req.body),
+          //  DataChecker.loadJWTUserCheck(res, req.body)
         ) as {
             userId: string,
             phone: string

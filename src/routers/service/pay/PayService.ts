@@ -29,7 +29,7 @@ export default class PayService extends ResController {
 
             //todo 결제후 결제정보 return 필요함.
 
-            let result = await DB.Execute(QM.Insert("t_node_pay",{
+            let result = await DB.Executer(QM.Insert("t_node_pay",{
                 user_id: userData.user_id,
                 phone: userData.phone_number,
                 name: userData.name,
