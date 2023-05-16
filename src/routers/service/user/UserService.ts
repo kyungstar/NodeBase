@@ -124,6 +124,7 @@ export default class PayService extends ResultBox {
             const user = new User();
             const userLogin = new UserLogin();
 
+            // 유저 베이스
             user.user_id = userId;
             user.name = name;
             user.email = email;
@@ -132,6 +133,7 @@ export default class PayService extends ResultBox {
             user.address = address;
             user.addressDetail = addressDetail;
 
+            // 유저 로그인정보
             userLogin.user_id = userId;
             userLogin.loginId = loginId;
             userLogin.pwd = pwd;
@@ -146,6 +148,7 @@ export default class PayService extends ResultBox {
 
             if(result) {
 
+                // 회원가입 실패시
                 const mailResult = await MailService.authEmail(email, 'USER_JOIN', '인증번호는 ' + newPwd + ' 입니다.');
 
                 if (mailResult.accepted[0].includes(email)) {
@@ -160,6 +163,8 @@ export default class PayService extends ResultBox {
                 }
 
             } else {
+                await queryRunner.rollbackTransaction();
+                await queryRunner.release();
                 return ResultBox.JustFalse('01');
             }
 
