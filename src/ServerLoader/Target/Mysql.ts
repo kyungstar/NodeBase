@@ -1,29 +1,30 @@
-import { createConnection, ConnectionOptions } from 'typeorm';
-import { join } from 'path';
-import Config from "../../../config"
+
 import DB from "../../modules/Mysql";
+import Config from "../../../config"
 import Logger from "../../modules/Logger";
-import {User, UserLogin} from "../../routers/entities/User/UserEntity";
+
 
 export default async () => {
+
     try {
-        const connectionOptions: ConnectionOptions = {
-            type: 'mysql',
+
+        await DB.getCluster().add("master", {
             host: Config.DB.host,
             port: Config.DB.port,
-            username: Config.DB.user,
+            user: Config.DB.user,
             password: Config.DB.password,
             database: Config.DB.database,
-            entities: [User, UserLogin],
-            synchronize: true,
-        };
+            multipleStatements: true,
+            connectionLimit: Config.DB.connectionLimit,
+            collation: "utf8mb4_general_ci",
+            acquireTimeout: 10000,
+            dateStrings: true,
+            timezone: "Asia/Seoul"
+        });
 
-        return await createConnection(connectionOptions);
+        return;
 
-    } catch (err) {
+    } catch(err) {
         throw new Error(err);
-
     }
 }
-
-
