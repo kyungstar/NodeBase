@@ -66,13 +66,15 @@ export default class ResController {
 
 
 
-    public err<T>(res: express.Response, code: string, err: string) {
+    public err<T>(res: express.Response, err: string) {
 
         let dto = {
             result: false,
-            code: code,
+            code: '03',
             msg: 'Error Occurred By ' + err
         };
+
+        Logger.error(err + ' is Occurred')
 
         res.type('application/json');
         return res.status(200).json(dto);

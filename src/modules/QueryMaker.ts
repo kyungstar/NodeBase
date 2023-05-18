@@ -4,6 +4,7 @@
 
 import Logger from '../modules/Logger'
 import ResController from "../routers/controller/ResController";
+import Config from "../../config";
 
 const escape = require('sqlstring').escape;
 
@@ -40,11 +41,12 @@ class QueryMaker extends ResController{
 
     }
 
-    // todo 수정해야함
-    Select = (tblName: string, selectObj: any, selectList: string[]) => {
+
+    Select = (tblName: string, selectObj: any, decryptSelectObj: any, selectList: string[]) => {
 
         try {
 
+            let decryptQuery = "";
             let query =
                 " SELECT ";
 
@@ -58,13 +60,18 @@ class QueryMaker extends ResController{
                 "   FROM " + tblName +
                 "   WHERE 1 = 1 ";
 
+            for (let k in decryptSelectObj) {
+
+                query += ` AND CONVERT(AES_DECRYPT(UNHEX(${escape(k)}),`.replace(/'/g,"") + escape(Config.DB.encrypt_key) + ") USING utf8) = " + escape(decryptSelectObj[k]);
+
+            }
+
             for (let k in selectObj) {
 
                 if(selectObj[k][0] === '\\')
                     query += " AND " + k + selectObj[k].slice(1, selectObj[k].length);
                 else
                     query += " AND " + k + " = " + escape(selectObj[k]);
-
             }
 
             return query;

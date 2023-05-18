@@ -6,16 +6,16 @@ const moment = require('moment')
 const sharp = require('sharp')
 import * as CryptoJS from 'crypto-js';
 
-import BaseController from '../Base/BaseController';
-import Logger from "../../../Module/Logger";
+import Logger from "../../../modules/Logger";
 import Config from "../../../../Config";
 import DataChecker from "../../Util/DataChecker";
 import {getConnection} from "typeorm";
-import {ygFile} from "../../Data/entities/File";
+import ResController from "../ResController";
 
 
 
-class FileController extends BaseController {
+
+class FileController extends ResController {
 
     public imageUpload = async (req: Request, res: Response) => {
         Logger.info("Call API - " + req.originalUrl);
@@ -54,22 +54,12 @@ class FileController extends BaseController {
             // 썸네일 업로드
             await sharp(dir + "/" + fileName).resize(200, 200).toFile(dir + "/" + fileThumbName);
 
-            const fileRepository = getConnection().getRepository(ygFile);
 
-
-            const fileData = new ygFile();
-             fileData.target_type = data.targetType;
-             fileData.target_key = 1;
-             fileData.file_path = uploadFilePath;
-             fileData.thumb_file_path = uploadThumbFilePath;
-             fileData.file_size = fileSize;
-
-            await fileRepository.save(fileData);
 
             return this.true(res, 'SU1');
 
         } catch (err) {
-            return this.err(res, 'UF2', err);
+            return this.err(res, err);
         }
 
     }
@@ -107,21 +97,21 @@ class FileController extends BaseController {
             console.log(data.fileSeq);
 
 
-            //const downloadPath = Config.DEFAULT_FILE_PATH + "/" + data.filePath;
+   /*         //const downloadPath = Config.DEFAULT_FILE_PATH + "/" + data.filePath;
             const fileRepository = getConnection().getRepository(ygFile);
             const fileData = await fileRepository.findOne({ where: { file_seq: data.fileSeq } });
 
             if(!fileData)
                 return this.false(res, 'NF0');
-
+*/
             const dir = Config.DEFAULT_FILE_PATH
-            const downloadPath = dir + fileData.file_path;
+           /* const downloadPath = dir + fileData.file_path;
 
             res.download(downloadPath);
-
+*/
         } catch(err) {
             Logger.info(err + ' Caused On Error')
-            this.err(res, 'D01', err);
+            this.err(res, err);
         }
     }
 

@@ -165,15 +165,14 @@ class UserController extends ResController {
 
             let emailCheckResult = await UserService.emailCheck(data.email);
 
-            if (emailCheckResult.result)
-                return this.true(res, emailCheckResult.code);
+            if (emailCheckResult)
+                return this.true(res, '01');
             else
-                return this.false(res, emailCheckResult.code);
+                return this.false(res, '01');
 
 
         } catch (err) {
-            Logger.debug(err + 'is Occured');
-            return this.err(res, 'A01', err);
+            return this.err(res, err);
         }
 
     }
@@ -203,7 +202,7 @@ class UserController extends ResController {
 
         } catch (err) {
             Logger.debug(err + ' is Occured');
-            return this.err(res, 'A01', err);
+            return this.err(res, err);
         }
 
     }
@@ -224,16 +223,16 @@ class UserController extends ResController {
                 return this.clientReqError(res, data);
             }
 
-            let updateResult = await UserService.updatePwd(data.loginId, data.originPwd, data.newPwd);
+  /*          let updateResult = await UserService.updatePwd(data.loginId, data.originPwd, data.newPwd);
 
-       /*     if (updateResult.result)
+       /!*     if (updateResult.result)
                 this.true(res, updateResult);
             else
-                this.false(res, updateResult);*/
+                this.false(res, updateResult);*!/*/
 
         } catch (err) {
             Logger.debug(err + 'is Occured');
-            return this.err(res, 'A01', err);
+            return this.err(res, err);
         }
     }
 
@@ -257,17 +256,17 @@ class UserController extends ResController {
                 return this.clientReqError(res, data);
             }
 
-            let result = await UserService.updateUser(data.loginId, data.email, data.phoneNumber, data.address, data.addressDetail);
+         /*   let result = await UserService.updateUser(data.loginId, data.email, data.phoneNumber, data.address, data.addressDetail);
 
             if (result)
                 this.true(res, '01');
             else
                 this.false(res, '02');
-
+*/
 
         } catch (err) {
             Logger.debug(err + 'is Occured');
-            return this.err(res, 'A01', err);
+            return this.err(res, err);
         }
     }
 
