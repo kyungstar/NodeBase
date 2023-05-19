@@ -2,6 +2,7 @@
  * Created By 강영규 On 2022-11-13
  */
 import ResController from "../Controller/ResController";
+import express from "express";
 
 class DataChecker extends ResController {
 
@@ -27,6 +28,22 @@ class DataChecker extends ResController {
         if(objData.userType !== 'USER' && objData.userType !== 'ADMIN')
             return this.false(res, 'U01');
     }*/
+
+    public resultInterpreter(res: express.Response, apiResponse: Object) {
+
+        if (typeof apiResponse === 'object') {
+
+            if((apiResponse as { result: any }).result === false)
+                return this.false(res, apiResponse);
+            else
+                return this.true(res, apiResponse)
+
+        } else {
+            return this.false(res, apiResponse);
+        }
+
+    }
+
 
     
     // 필수 값 검증

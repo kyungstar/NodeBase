@@ -8,12 +8,35 @@ export default class ResultBox {
 
     static JustFalse(code: string) {
 
-        return {result: false, code: code};
+        let dto = {
+            result: false,
+            code: code
+        };
+
+        return dto;
     }
 
     static JustTrue(code: string) {
 
-        return {result: true, code: code};
+        let dto = {
+            result: true,
+            code: code
+        };
+
+        return dto;
+
+    }
+
+    static JustTrueObj(code: string, resultObj: object) {
+
+        let dto = {
+            result: true,
+            code: code,
+            resultObj: resultObj
+        };
+
+        return dto;
+
     }
 /*    static JustTrue(res, code: string) {
         if (!dto) { // @ts-ignore
@@ -34,8 +57,8 @@ export default class ResultBox {
 
         err = err.substring(0, 10);
 
-        Logger.debug(err + 'is Occured');
-        return {result: false, code: '03', err: err + ' Is Occurred'};
+        Logger.debug(err + ' is Occured');
+        return {result: false, code: '03', err: err + ' is Occurred'};
     }
 
 
