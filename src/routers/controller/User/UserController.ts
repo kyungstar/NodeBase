@@ -1,4 +1,4 @@
-import {Request, Response} from "express";
+import {application, Request, Response} from "express";
 
 import ResController from "../ResController";
 
@@ -116,10 +116,9 @@ class UserController extends ResController {
         let userJoinResult = await UserService.Join(data.loginId, data.pwd, data.userType, data.email, data.name, data.nickName, data.phoneNumber, data.gender
             , data.address, data.addressDetail);
 
-        if(userJoinResult.result)
-            return this.true(res, userJoinResult.code);
-        else
-            return this.false(res, userJoinResult.code);
+
+       return DataChecker.resultInterpreter(res, userJoinResult);
+
 
     }
 
@@ -141,12 +140,10 @@ class UserController extends ResController {
 
         let accessInfo = await UserService.Access(res, data.loginId, data.pwd)
 
-        // 세션 등록 추가
-        if (accessInfo)
-            return this.true(res, 'TS1', {token: accessInfo});
-        else
-            return this.false(res, accessInfo.message);
+        console.log(accessInfo);
 
+        // 세션 등록 추가
+        DataChecker.resultInterpreter(res, accessInfo)
     }
 
     public userEmail = async (req: Request, res: Response) => {
@@ -165,10 +162,7 @@ class UserController extends ResController {
 
             let emailCheckResult = await UserService.emailCheck(data.email);
 
-            if (emailCheckResult)
-                return this.true(res, '01');
-            else
-                return this.false(res, '01');
+            return DataChecker.resultInterpreter(res, emailCheckResult);
 
 
         } catch (err) {
@@ -191,13 +185,9 @@ class UserController extends ResController {
                 return this.clientReqError(res, data);
             }
 
-            //todo 전화번호 추가 작업 필요
-            let result = await UserService.phoneCheck(data.phoneNumber);
+            let phoneCheckResult = await UserService.phoneCheck(data.phoneNumber);
 
-            if (result)
-                return this.true(res, '01');
-            else
-                return this.false(res, '01');
+            return DataChecker.resultInterpreter(res, phoneCheckResult)
 
 
         } catch (err) {
@@ -223,12 +213,12 @@ class UserController extends ResController {
                 return this.clientReqError(res, data);
             }
 
-  /*          let updateResult = await UserService.updatePwd(data.loginId, data.originPwd, data.newPwd);
+            /*          let updateResult = await UserService.updatePwd(data.loginId, data.originPwd, data.newPwd);
 
-       /!*     if (updateResult.result)
-                this.true(res, updateResult);
-            else
-                this.false(res, updateResult);*!/*/
+                 /!*     if (updateResult.result)
+                          this.true(res, updateResult);
+                      else
+                          this.false(res, updateResult);*!/*/
 
         } catch (err) {
             Logger.debug(err + 'is Occured');
@@ -256,13 +246,13 @@ class UserController extends ResController {
                 return this.clientReqError(res, data);
             }
 
-         /*   let result = await UserService.updateUser(data.loginId, data.email, data.phoneNumber, data.address, data.addressDetail);
+            /*   let result = await UserService.updateUser(data.loginId, data.email, data.phoneNumber, data.address, data.addressDetail);
 
-            if (result)
-                this.true(res, '01');
-            else
-                this.false(res, '02');
-*/
+               if (result)
+                   this.true(res, '01');
+               else
+                   this.false(res, '02');
+   */
 
         } catch (err) {
             Logger.debug(err + 'is Occured');

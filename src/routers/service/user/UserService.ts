@@ -27,7 +27,7 @@ export default class UserService extends ResultBox {
                 auth_pwd: authPwd,
                 login_id: loginId,
                 auth_expire_date: '\\> NOW()'
-            }, {},["*"]));
+            }, {}, ["*"]));
 
             if (!authData)
                 return false;
@@ -58,15 +58,14 @@ export default class UserService extends ResultBox {
 
         try {
 
-            let result = await DB.getOne(QM.Select("t_node_user",{},{
+            let result = await DB.getOne(QM.Select("t_node_user", {}, {
                 phone_number: phoneNumber
-            },["*"]));
-
+            }, ["*"]));
 
             if (result)
-                return false;
+                return this.JustFalse('P01');
             else
-                return true;
+                return this.JustTrue('P01');
 
         } catch (err) {
             Logger.debug(err + ' is Occured')
@@ -81,12 +80,12 @@ export default class UserService extends ResultBox {
 
             let result = await DB.getOne(QM.Select("t_node_user", {
                 email: email
-            }, {},["*"]))
+            }, {}, ["*"]))
 
             if (result)
-                return false;
+                return this.JustFalse('E01');
             else
-                return true;
+                return this.JustTrue('E01')
 
         } catch (err) {
             Logger.debug(err + ' is Occured')
@@ -99,6 +98,19 @@ export default class UserService extends ResultBox {
         , name: string, nickName: string, phoneNumber: string, gender: string, address: string, addressDetail: string) {
 
         try {
+
+
+            // 전화번호 중복 검증
+            let phoneCheck = await this.phoneCheck(phoneNumber);
+
+            if (!phoneCheck)
+                throw 'P01';
+
+            // 이메일 중복 검증
+            let emailCheck = await this.emailCheck(email);
+
+            if (!emailCheck)
+                throw 'E01';
 
             let userId = Math.random().toString(36).substring(7, 25);
             let newPwd: string = "";
@@ -135,11 +147,17 @@ export default class UserService extends ResultBox {
                 })
             ])
 
-            return {contents: '고객님의 메일 인증 비밀번호는 ' + newPwd + '입니다.'}
+            const contents = '고객님의 메일 인증 비밀번호는 ' + newPwd + '입니다.'
 
+            let sendEmailResult = await MailService.send(email, '회원가입 인증코드입니다.', contents);
+
+            if (sendEmailResult.accepted.includes(email))
+                return true;
+            else
+                return false;
 
         } catch (err) {
-            return err;
+            return this.JustErr(err);
         }
     }
 
@@ -150,27 +168,21 @@ export default class UserService extends ResultBox {
 
             let userData = await DB.getOne(QM.Select("t_node_user", {
                 login_id: loginId
-            }, ["*"], []));
+            }, {},["*"]));
 
             if (!userData)
-                return null;
+                return this.JustFalse('NU0');
 
             let loginData = await DB.getOne(QM.Select("t_node_login", {
                 login_id: loginId
-            }, {},["*"]));
+            }, {}, ["*"]));
 
             // 로그인정보 존재하지 않음.
             if (!loginData)
-                return {
-                    result: false,
-                    message: 'NL0'
-                };
+                return this.JustFalse('NL0')
 
             if (loginData.initial_auth === 0 || loginData.try_cnt === 3 || loginData.try_cnt > 3) {
-                return {
-                    result: false,
-                    message: 'PT0'
-                };
+                return this.JustFalse('PT0')
             }
 
 
@@ -178,12 +190,14 @@ export default class UserService extends ResultBox {
             // 비밀번호 불일치
             if (pwd !== loginData.pwd) {
 
+                console.log(loginData);
+
                 let result = await DB.Executer(QM.Update("t_node_login", {try_cnt: '\\try_cnt + 1'}, {user_id: loginData.user_id}))
 
-                if (result)
-                    return {result: false, message: 'IP0'};
+                if(result)
+                    return this.JustFalse('IP0')
                 else
-                    return {result: false, message: 'IP1'};
+                    return this.JustErr('99');
 
             }
 
@@ -192,17 +206,14 @@ export default class UserService extends ResultBox {
             if (result) {
                 const token = createToken(new JwtModel(({u: userData.user_id, t: userData.user_type} as JwtModel)));
 
-                return {
-                    result: true,
-                    token: token
-                }
+                return this.JustTrue('01');
             } else {
-                return false;
+                return this.JustFalse('01');
             }
 
 
         } catch (err) {
-            return err;
+            return this.JustErr(err);
         }
     }
 
