@@ -6,13 +6,13 @@ import UserController from './UserController'
 const router = Router();
 
 
-// 이메일 중복검사
+// 이메일 중복검사 ✓
 router.post("/user/email/check", UserController.userEmail)
 
-// 전화번호 중복검사
+// 전화번호 중복검사 ✓
 router.post("/user/phone/check", UserController.userPhone)
 
-// 회원가입
+// 회원가입 ✓
 router.post("/user/join", UserController.userJoin)
 
 // 고객 로그인
