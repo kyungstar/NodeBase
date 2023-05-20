@@ -16,14 +16,13 @@ class UserController extends ResController {
         Logger.info("Call API - " + req.originalUrl);
 
         let data = DataChecker.mergeObject(
-            DataChecker.needArrCheck(res, req.body, [
-                "loginId", "authType", "authPwd"
-            ])
+            DataChecker.needArrCheck(res, req.body, ["authType", "authPwd"]),
+            DataChecker.stringArrCheck(res, req.body, ["loginId", "email"], false)
         ) as {
-            loginId: string,
             authType: string,
+            email: string,
+            loginId: string,
             authPwd: string
-
         };
 
         if (typeof data == 'string') {
@@ -32,15 +31,12 @@ class UserController extends ResController {
 
         try {
 
-            const userData = await UserService.checkUserAuth(data.loginId, data.authType, data.authPwd);
+            const userData = await UserService.checkUserAuth(data.loginId, data.email, data.authType, data.authPwd);
 
-            if (userData)
-                this.true(res, 'AS0')
-            else
-                this.false(res, 'AF0')
+            this.resultInterpreter(res, userData);
 
         } catch (err) {
-
+            this.errInterpreter(res, err);
         }
 
     }
@@ -49,12 +45,12 @@ class UserController extends ResController {
         Logger.info("Call API - " + req.originalUrl);
 
         let data = DataChecker.mergeObject(
-            DataChecker.stringArrCheck(res, req.body, [
-                "loginId", "authType"
-            ], true)
+            DataChecker.stringArrCheck(res, req.body,["authType"], true),
+            DataChecker.stringArrCheck(res, req.body,["loginId", "email"], false)
         ) as {
             loginId: string,
-            authType: string
+            authType: string,
+            email: string
         };
 
 
@@ -62,26 +58,15 @@ class UserController extends ResController {
             return this.clientReqError(res, data);
         }
 
-        const userData = await UserService.getUserData(data.loginId);
+        try {
 
-        if (!userData) {
-            this.false(res, '01')
-            return;
+            const mailResult = await MailService.authEmail(data.authType, data.loginId, data.email);
+
+            this.resultInterpreter(res, mailResult);
+
+        } catch (err) {
+            this.errInterpreter(res, err);
         }
-
-        const userAuthData = await UserService.getUserAuthData(data.loginId, data.authType);
-
-        if (!userAuthData) {
-            this.false(res, '01');
-            return;
-        }
-
-        const mailResult = await MailService.authEmail(userData.email, data.authType, userAuthData.cotents);
-
-        if (mailResult.accepted[0].includes(userData.email))
-            this.true(res, 'UA0');
-        else
-            this.false(res, 'UA1')
 
     }
 
@@ -109,16 +94,19 @@ class UserController extends ResController {
             nickName: string
         };
 
-        if (typeof data == 'string') {
-            return this.clientReqError(res, data);
+        try {
+            if (typeof data == 'string') {
+                return this.clientReqError(res, data);
+            }
+
+            let userJoinResult = await UserService.Join(data.loginId, data.pwd, data.userType, data.email, data.name, data.nickName, data.phoneNumber, data.gender
+                , data.address, data.addressDetail);
+
+            this.resultInterpreter(res, userJoinResult);
+
+        } catch (err) {
+            this.errInterpreter(res, err);
         }
-
-        let userJoinResult = await UserService.Join(data.loginId, data.pwd, data.userType, data.email, data.name, data.nickName, data.phoneNumber, data.gender
-            , data.address, data.addressDetail);
-
-
-       return DataChecker.resultInterpreter(res, userJoinResult);
-
 
     }
 
@@ -138,12 +126,17 @@ class UserController extends ResController {
         }
 
 
-        let accessInfo = await UserService.Access(res, data.loginId, data.pwd)
+        try {
 
-        console.log(accessInfo);
+            let accessInfo = await UserService.Access(res, data.loginId, data.pwd);
 
-        // 세션 등록 추가
-        DataChecker.resultInterpreter(res, accessInfo)
+            this.resultInterpreter(res, accessInfo);
+
+        } catch (err) {
+            this.errInterpreter(res, err);
+        }
+
+
     }
 
     public userEmail = async (req: Request, res: Response) => {
@@ -162,11 +155,11 @@ class UserController extends ResController {
 
             let emailCheckResult = await UserService.emailCheck(data.email);
 
-            return DataChecker.resultInterpreter(res, emailCheckResult);
+            this.resultInterpreter(res, emailCheckResult);
 
 
         } catch (err) {
-            return this.err(res, err);
+            this.errInterpreter(res, err);
         }
 
     }
@@ -182,17 +175,16 @@ class UserController extends ResController {
             }
 
             if (typeof data == 'string') {
-                return this.clientReqError(res, data);
+                this.clientReqError(res, data);
             }
 
             let phoneCheckResult = await UserService.phoneCheck(data.phoneNumber);
 
-            return DataChecker.resultInterpreter(res, phoneCheckResult)
+            this.resultInterpreter(res, phoneCheckResult)
 
 
         } catch (err) {
-            Logger.debug(err + ' is Occured');
-            return this.err(res, err);
+            this.errInterpreter(res, err);
         }
 
     }
@@ -202,27 +194,48 @@ class UserController extends ResController {
         try {
 
             let data = DataChecker.mergeObject(
-                DataChecker.needArrCheck(res, req.body, ['loginId', 'originPwd', 'newPwd'])
+                DataChecker.needArrCheck(res, req.body, ['newPwd']),
+                DataChecker.loadJWTValue(req.body)
             ) as {
-                loginId: string,
-                originPwd: string,
-                newPwd: string
+                newPwd: string,
+                userId: string
             }
 
             if (typeof data == 'string') {
                 return this.clientReqError(res, data);
             }
 
-            /*          let updateResult = await UserService.updatePwd(data.loginId, data.originPwd, data.newPwd);
+            let userPwdUpdate = await UserService.updatePwd(data.userId, data.newPwd);
 
-                 /!*     if (updateResult.result)
-                          this.true(res, updateResult);
-                      else
-                          this.false(res, updateResult);*!/*/
+            this.resultInterpreter(res, userPwdUpdate)
 
         } catch (err) {
-            Logger.debug(err + 'is Occured');
-            return this.err(res, err);
+            this.errInterpreter(res, err);
+        }
+    }
+
+
+    public authPw = async (req: Request, res: Response) => {
+
+        try {
+
+            let data = DataChecker.mergeObject(
+                DataChecker.needArrCheck(res, req.body, ['loginId', 'pwd'])
+            ) as {
+                loginId: string,
+                pwd: string
+            }
+
+            if (typeof data == 'string') {
+                return this.clientReqError(res, data);
+            }
+
+            let userPwdAuth = await UserService.authPwd(data.loginId, data.pwd);
+
+            this.resultInterpreter(res, userPwdAuth)
+
+        } catch (err) {
+            this.errInterpreter(res, err);
         }
     }
 
@@ -246,17 +259,8 @@ class UserController extends ResController {
                 return this.clientReqError(res, data);
             }
 
-            /*   let result = await UserService.updateUser(data.loginId, data.email, data.phoneNumber, data.address, data.addressDetail);
-
-               if (result)
-                   this.true(res, '01');
-               else
-                   this.false(res, '02');
-   */
-
         } catch (err) {
-            Logger.debug(err + 'is Occured');
-            return this.err(res, err);
+            this.errInterpreter(res, err);
         }
     }
 

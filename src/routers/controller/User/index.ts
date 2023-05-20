@@ -2,6 +2,7 @@ import {Router} from "express";
 import Config from "../../../../config";
 
 import UserController from './UserController'
+import {jwtAuthCheck} from "../../../middlewares/JwtAuth";
 
 const router = Router();
 
@@ -15,22 +16,20 @@ router.post("/user/phone/check", UserController.userPhone)
 // 회원가입 ✓
 router.post("/user/join", UserController.userJoin)
 
-// 고객 로그인
+// 고객 로그인 ✓
 router.post("/user/login", UserController.userLogin)
 
-
-
-// 인증발송 API
+// 인증발송 API ✓
 router.post("/send/auth", UserController.sendAuth)
 
-// 인증하기
+// 인증하기 ✓
 router.post("/user/auth", UserController.userAuth)
 
-// 비밀번호 변경하기
-router.post("/user/password", UserController.resetPw)
+// 비밀번호 인증 ✓
+router.post("/user/password/auth", UserController.authPw)
 
-// 고객정보 변경하기
-router.post("/user/update", UserController.updateUser)
+// 비밀번호 변경하기 ✓
+router.post("/user/password", [jwtAuthCheck], UserController.resetPw)
 
 
 

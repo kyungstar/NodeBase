@@ -7,6 +7,7 @@ import ResController from "../../controller/ResController";
 import Logger from "../../../modules/Logger";
 import {createToken, JwtModel} from "../../../middlewares/JwtAuth";
 import ResultBox from "../../dto/ResultBox";
+import DataChecker from "../../util/DataChecker";
 
 
 const escape = require('mysql').escape;
@@ -18,34 +19,53 @@ const crypto = require("crypto");
 export default class UserService extends ResultBox {
 
 
-    public static async checkUserAuth(loginId: string, authType: string, authPwd: string) {
+    public static async checkUserAuth(loginId: string, email: string, authType: string, authPwd: string) {
 
         try {
+
+            let userData;
+
+            // 비밀번호 찾기는, 아이디를 기반으로 진행된다.
+            if (authType === 'FIND_PW')
+                userData = await UserService.getUserDataByLoginId(loginId);
+
+            // 아이디 찾기는, 고객의 이메일을 기반으로 진행된다.
+            else if (authType === 'FIND_ID')
+                userData = await UserService.getUserDataByEmail(email);
+
+            if (!userData)
+                return this.JustFalse('NU0');
 
             const authData = await DB.getOne(QM.Select("t_node_login", {
                 auth_type: authType,
                 auth_pwd: authPwd,
-                login_id: loginId,
+                user_id: userData.user_id,
                 auth_expire_date: '\\> NOW()'
             }, {}, ["*"]));
 
             if (!authData)
-                return false;
+                return this.JustTrue('AU0');
 
-            const isAuth = authType === 'USER_JOIN' ? '0' : 1;
+            if (authType === 'USER_JOIN') {
+                let result = await DB.Executer(QM.Update("t_node_login", {
+                    initial_auth: 1,
+                    is_auth: 0,
+                }, {
+                    login_id: loginId
+                }));
 
-            let result = await DB.Executer(QM.Update("t_node_login", {
-                initial_auth: 1,
-                is_auth: 0,
-            }, {
-                login_id: loginId
-            }));
+                if (result)
+                    return this.JustTrue('NS0');
+                else
+                    return this.JustFalse('NU0');
 
-            if (result)
-                return true;
-            else
-                return false;
+            } else if (authType === 'FIND_ID') {
+                return this.ObjTrue('FI0', [{loginId: authData.login_id}]);
 
+            } else {
+                return this.JustTrue('FP0');
+
+            }
 
         } catch (err) {
             Logger.error(err + ' Is Occurred');
@@ -101,16 +121,14 @@ export default class UserService extends ResultBox {
 
 
             // 전화번호 중복 검증
-            let phoneCheck = await this.phoneCheck(phoneNumber);
+            if (DataChecker.onlyResultInterpreter(await this.phoneCheck(phoneNumber), false))
+                return this.JustErr('PA0');
 
-            if (!phoneCheck)
-                throw 'P01';
 
             // 이메일 중복 검증
-            let emailCheck = await this.emailCheck(email);
+            if (DataChecker.onlyResultInterpreter(await this.emailCheck(email), false))
+                return this.JustErr('EA0');
 
-            if (!emailCheck)
-                throw 'E01';
 
             let userId = Math.random().toString(36).substring(7, 25);
             let newPwd: string = "";
@@ -121,7 +139,6 @@ export default class UserService extends ResultBox {
             }
 
 
-            // todo 암호화 변경
             await DB.get([
                 QM.Insert("t_node_user", {
                     user_id: userId,
@@ -152,9 +169,9 @@ export default class UserService extends ResultBox {
             let sendEmailResult = await MailService.send(email, '회원가입 인증코드입니다.', contents);
 
             if (sendEmailResult.accepted.includes(email))
-                return true;
+                return this.JustTrue('01');
             else
-                return false;
+                return this.JustFalse('01');
 
         } catch (err) {
             return this.JustErr(err);
@@ -168,7 +185,7 @@ export default class UserService extends ResultBox {
 
             let userData = await DB.getOne(QM.Select("t_node_user", {
                 login_id: loginId
-            }, {},["*"]));
+            }, {}, ["*"]));
 
             if (!userData)
                 return this.JustFalse('NU0');
@@ -190,11 +207,9 @@ export default class UserService extends ResultBox {
             // 비밀번호 불일치
             if (pwd !== loginData.pwd) {
 
-                console.log(loginData);
+                let pwdTryUpdate = await DB.Executer(QM.Update("t_node_login", {try_cnt: '\\try_cnt + 1'}, {user_id: loginData.user_id}))
 
-                let result = await DB.Executer(QM.Update("t_node_login", {try_cnt: '\\try_cnt + 1'}, {user_id: loginData.user_id}))
-
-                if(result)
+                if (pwdTryUpdate)
                     return this.JustFalse('IP0')
                 else
                     return this.JustErr('99');
@@ -206,7 +221,7 @@ export default class UserService extends ResultBox {
             if (result) {
                 const token = createToken(new JwtModel(({u: userData.user_id, t: userData.user_type} as JwtModel)));
 
-                return this.JustTrue('01');
+                return this.ObjTrue('01', [{token: token}]);
             } else {
                 return this.JustFalse('01');
             }
@@ -217,11 +232,11 @@ export default class UserService extends ResultBox {
         }
     }
 
-    public static async getUserAuthData(loginId: string, authType: string) {
+    public static async getUserAuthData(userId: string, authType: string) {
 
         try {
 
-            let pwd = moment().format('YYYYMMDD') + loginId + moment().format('DDD');
+            let pwd = moment().format('YYYYMMDD') + userId + moment().format('DDD');
             let newPwd: string = "";
 
             for (let i = 0; i < 6; i++) {
@@ -232,14 +247,15 @@ export default class UserService extends ResultBox {
 
             let result = await DB.Executer(QM.Update("t_node_login", {
                 auth_pwd: newPwd,
+                auth_type: authType,
                 auth_expire_date: '\\NOW() + INTERVAL 3 MINUTE'
-            }, {login_id: loginId}));
+            }, {user_id: userId}));
 
             if (!result)
-                return false;
+                return this.JustFalse('99');
 
             if (authType === 'FIND_ID') {
-                return {contents: '[휴먼계정 해제] 고객님의 메일 인증 비밀번호는 ' + newPwd + '입니다.'}
+                return this.ObjTrue('01', [{contents: '[휴먼계정 해제] 고객님의 메일 인증 비밀번호는 ' + newPwd + '입니다.'}]);
             } else {
                 return {contents: '고객님의 메일 인증 비밀번호는 ' + newPwd + '입니다.'}
             }
@@ -253,37 +269,75 @@ export default class UserService extends ResultBox {
 
     }
 
-    public static async getUserData(loginId: string) {
+    public static async getUserDataByLoginId(loginId: string) {
 
         try {
 
             let loginData = await DB.getOne(QM.Select("t_node_user", {
                 login_id: loginId
-            }, ["*"], []));
+            }, {}, ["*"]));
 
             if (!loginData && !loginData.email)
-                return false;
+                return this.JustFalse('01');
             else
-                return loginData;
+                return this.ObjTrue('01', loginData);
 
         } catch (err) {
             return err;
         }
     }
 
-    public static async updatePwd(loginId: string, newPwd: string) {
+    public static async getUserDataByEmail(email: string) {
 
         try {
 
+            let loginData = await DB.getOne(QM.Select("t_node_user", {
+                email: email
+            }, {}, ["*"]));
+
+            if (!loginData)
+                return this.JustFalse('01');
+            else
+                return this.ObjTrue('01', loginData);
+
+        } catch (err) {
+            return err;
+        }
+    }
+
+    public static async updatePwd(userId: string, newPwd: string) {
+
+        try {
 
             let result = await DB.Executer(QM.Update("t_node_login", {
                 pwd: crypto.createHash('sha512').update(newPwd).digest('hex')
             }, {
-                login_id: loginId
+                user_id: userId
             }))
 
-            return result;
+            if (result)
+                return this.JustTrue('01')
+            else
+                return this.JustFalse('01');
 
+        } catch (err) {
+            return err;
+        }
+    }
+
+    public static async authPwd(loginId: string, pwd: string) {
+
+        try {
+
+            let loginData = await DB.getOne(QM.Select("t_node_login", {
+                login_id: loginId,
+                pwd: pwd
+            }, {}, ["*"]));
+
+            if (loginData)
+                return this.JustTrue('01')
+            else
+                return this.JustFalse('01');
 
         } catch
             (err) {
@@ -306,7 +360,10 @@ export default class UserService extends ResultBox {
                 login_id: loginId
             }))
 
-            return result;
+            if (result)
+                return this.JustTrue('01');
+            else
+                return this.JustFalse('01');
 
 
         } catch (err) {
