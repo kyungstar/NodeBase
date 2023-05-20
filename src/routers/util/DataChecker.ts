@@ -8,7 +8,7 @@ class DataChecker extends ResController {
 
 
     // 토큰 꺼내기
-/*    public loadJWTValue(objData: any) {
+    public loadJWTValue(objData: any) {
         return {
             userId: objData.userId,
             userType: objData.userType
@@ -27,22 +27,9 @@ class DataChecker extends ResController {
     public loadJWTUserCheck(res: any, objData: any) {
         if(objData.userType !== 'USER' && objData.userType !== 'ADMIN')
             return this.false(res, 'U01');
-    }*/
-
-    public resultInterpreter(res: express.Response, apiResponse: Object) {
-
-        if (typeof apiResponse === 'object') {
-
-            if((apiResponse as { result: any }).result === false)
-                return this.false(res, apiResponse);
-            else
-                return this.true(res, apiResponse)
-
-        } else {
-            return this.false(res, apiResponse);
-        }
-
     }
+
+
 
 
     

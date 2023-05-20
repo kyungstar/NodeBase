@@ -37,8 +37,6 @@ export function jwtAuthCheck(req: Request, res: Response, next: NextFunction) {
 
     let token = <string>req.headers["authorization"];
 
-
-
     if (!token)
         return res.status(401).send({result: false, code: "401"});
 
@@ -46,7 +44,6 @@ export function jwtAuthCheck(req: Request, res: Response, next: NextFunction) {
         return res.status(401).send({result: false, code: "401 Bearer"});
 
     token = token.slice(7, token.length);
-
 
     let jwtPayload;
 
