@@ -27,15 +27,21 @@ export default class ResultBox {
 
     }
 
-    static JustTrueObj(code: string, resultObj: object) {
+    static ObjTrue(code: string, targetObj: object[]) {
 
         let dto = {
             result: true,
             code: code,
-            resultObj: resultObj
         };
 
-        return dto;
+        let resultObj;
+
+        if(targetObj.length === 1)
+            resultObj = Object.assign({}, targetObj[0], dto);
+        else
+            resultObj = Object.assign({}, targetObj, dto);
+
+        return resultObj;
 
     }
 /*    static JustTrue(res, code: string) {
