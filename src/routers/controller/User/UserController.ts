@@ -5,10 +5,12 @@ import ResController from "../ResController";
 
 import Logger from "../../../modules/Logger";
 import DataChecker from "../../util/DataChecker";
+import mqttClient from "../../../ServerLoader/Target/MQTT";
 
 import UserService from "../../service/user/UserService";
 import MailService from "../../service/mail/MailService";
 import {log} from "winston";
+import MqttBroker from "../../../middlewares/MqttBroker";
 
 class UserController extends ResController {
 
@@ -32,6 +34,8 @@ class UserController extends ResController {
         try {
 
             const userData = await UserService.checkUserAuth(data.loginId, data.email, data.authType, data.authPwd);
+
+            MqttBroker.createPublisher()
 
             this.resultInterpreter(res, userData);
 

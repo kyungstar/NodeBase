@@ -28,3 +28,4 @@ export default async () => {
         throw new Error(err);
     }
 }
+

@@ -4,6 +4,7 @@ import Config from "../config";
 import UserLoader from "./ServerLoader/Target/User";
 import DFSLoader from "./ServerLoader/Target/DFS";
 import DBLoader from "./ServerLoader/Target/Mysql";
+import MQTTLoader from "./ServerLoader/Target/MQTT";
 
 import Logger from ".//modules/Logger";
 
@@ -15,6 +16,7 @@ import Logger from ".//modules/Logger";
         Logger.info(Config.SERVER_TYPE + ' Is Loading')
         Logger.info('DB Is Loading')
         await DBLoader();
+        await MQTTLoader();
         await UserLoader();
     }
 
