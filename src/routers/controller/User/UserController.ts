@@ -9,8 +9,9 @@ import mqttClient from "../../../ServerLoader/Target/MQTT";
 
 import UserService from "../../service/user/UserService";
 import MailService from "../../service/mail/MailService";
+import Publisher from "../../service/mqtt/Publisher";
 import {log} from "winston";
-import MqttBroker from "../../../middlewares/MqttBroker";
+
 
 class UserController extends ResController {
 
@@ -35,8 +36,7 @@ class UserController extends ResController {
 
             const userData = await UserService.checkUserAuth(data.loginId, data.email, data.authType, data.authPwd);
 
-            MqttBroker.createPublisher()
-
+            await Publisher.staticMqttPublish('/C/2/H/300', 'hello')
             this.resultInterpreter(res, userData);
 
         } catch (err) {

@@ -7,6 +7,7 @@ import DBLoader from "./ServerLoader/Target/Mysql";
 import MQTTLoader from "./ServerLoader/Target/MQTT";
 
 import Logger from ".//modules/Logger";
+import MQTT from "./ServerLoader/Target/MQTT";
 
 
 (async function () {

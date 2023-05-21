@@ -7,6 +7,7 @@ import Config from "../../../config";
 import Logger from "../../modules/Logger";
 
 import router from "../../routers/controller";
+import MQTT from "./MQTT";
 
 
 export default async () => {
