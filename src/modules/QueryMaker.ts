@@ -161,7 +161,7 @@ class QueryMaker extends ResController{
             return query;
 
         } catch (err) {
-            Logger.debug('Query Select Fail')
+            Logger.debug(err)
         }
 
     }

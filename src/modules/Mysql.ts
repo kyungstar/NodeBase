@@ -99,6 +99,8 @@ class MariaDB {
         } catch (err) {
             await conn.rollback();
             await conn.release();
+
+            Logger.error(err);
             return null;
 
         }
