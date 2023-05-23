@@ -41,7 +41,6 @@ export default async () => {
 
     app.use("/", router);
 
-
     const server = app.listen(Config.PORT, () => {
         const {address, port} = server.address() as AddressInfo;
         Logger.info(Config.SERVER_TYPE + ' Server on ' + 'http://127.0.0.1:' + port)

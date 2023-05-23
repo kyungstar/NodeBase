@@ -17,7 +17,6 @@ import MQTT from "./ServerLoader/Target/MQTT";
         Logger.info(Config.SERVER_TYPE + ' Is Loading')
         Logger.info('DB Is Loading')
         await DBLoader();
-        await MQTTLoader();
         await UserLoader();
     }
 
@@ -28,5 +27,12 @@ import MQTT from "./ServerLoader/Target/MQTT";
         await DBLoader();
         await DFSLoader();
     }
+
+    // MQTT Messaging Protocol
+    if (["MQTT"].indexOf(Config.SERVER_TYPE) >= 0) {
+        Logger.info(Config.SERVER_TYPE + ' Is Loading')
+        await MQTTLoader();
+    }
+
 
 })();

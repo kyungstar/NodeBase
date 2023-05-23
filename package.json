@@ -1,7 +1,6 @@
 {
   "name": "nodebase",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -17,7 +16,7 @@
   },
   "homepage": "https://github.com/KKYUNG2/NodeBase#readme",
   "dependencies": {
-    "aedes": "^0.48.0",
+    "aedes": "^0.48.1",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "crypto-js": "^4.1.1",
@@ -27,6 +26,7 @@
     "glob": "^10.2.3",
     "gm": "^1.25.0",
     "image-thumbnail": "^1.0.15",
+    "jsonschema": "^1.2.6",
     "jsonwebtoken": "^8.5.1",
     "mariadb": "^3.0.2",
     "moment": "^2.29.4",
@@ -62,7 +62,9 @@
     "@types/express-session": "^1.17.5",
     "@types/jsonwebtoken": "^8.5.9",
     "@types/morgan": "^1.9.3",
-    "@types/mosca": "^2.8.5",
+    "@types/mosca": "^2.8.3",
     "@types/uuid": "^9.0.1"
-  }
+  },
+  "keywords": [],
+  "description": ""
 }

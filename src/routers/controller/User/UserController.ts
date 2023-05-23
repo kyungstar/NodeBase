@@ -9,8 +9,8 @@ import mqttClient from "../../../ServerLoader/Target/MQTT";
 
 import UserService from "../../service/user/UserService";
 import MailService from "../../service/mail/MailService";
-import Publisher from "../../service/mqtt/Publisher";
-import {log} from "winston";
+import MqttExecuter from "../../service/mqtt/MqttExecuter";
+
 
 
 class UserController extends ResController {
@@ -36,7 +36,11 @@ class UserController extends ResController {
 
             const userData = await UserService.checkUserAuth(data.loginId, data.email, data.authType, data.authPwd);
 
-            await Publisher.staticMqttPublish('/C/2/H/300', 'hello')
+
+// MqttExecuter 클래스의 인스턴스 생성
+            const mqttExecuter = new MqttExecuter();
+
+            MqttExecuter.publishMessage('C/2/H/2', "hello")
             this.resultInterpreter(res, userData);
 
         } catch (err) {

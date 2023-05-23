@@ -24,7 +24,6 @@ class Config {
     DEFAULT_FILE_PATH: string;
     OS_TYPE: string;
     FILE_SIZE: number;
-    MQTT_PORT: number;
     MQTT_HOST: string;
 
     //JWT
@@ -67,7 +66,6 @@ class Config {
 
         // Global
         this.PORT = parseInt(process.env.PORT, 10);
-        this.MQTT_PORT = parseInt(process.env.MQTT_PORT, 10);
         this.MQTT_HOST = process.env.MQTT_HOST;
         this.SERVER_TYPE = process.env.SERVER_TYPE
         this.DEFAULT_FILE_PATH = process.env.DEFAULT_FILE_PATH
