@@ -37,7 +37,7 @@ class UserController extends ResController {
             const userData = await UserService.checkUserAuth(data.loginId, data.email, data.authType, data.authPwd);
 
 
-// MqttExecuter 클래스의 인스턴스 생성
+            // MqttExecuter 클래스의 인스턴스 생성
             const mqttExecuter = new MqttExecuter();
 
             MqttExecuter.publishMessage('C/2/H/2', "hello")
