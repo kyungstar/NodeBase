@@ -51,6 +51,28 @@ class MariaDB {
 
     }
 
+    async getList(statement: string) {
+        let conn = await this.getConnection();
+
+        try {
+            let result = await conn.query(statement.trim());
+
+            Logger.debug("Query result - " + (!!result));
+            Logger.debug(statement);
+
+            await conn.commit();
+            await conn.release();
+
+            return result;
+
+        } catch (err) {
+            Logger.debug('Query Select Fail', err);
+            await conn.release();
+            return null;
+
+        }
+
+    }
 
     async get(statement: string[]) {
 

@@ -20,7 +20,7 @@ export default class PayService extends ResController {
             let userData = await DB.getOne(QM.Select("t_node_user",{
                 user_id: userId,
                 phone: phone
-            }, ["*"]));
+            }, {},["*"]));
 
 
             if(!userData)
