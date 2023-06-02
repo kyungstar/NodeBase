@@ -5,7 +5,7 @@ import UserLoader from "./ServerLoader/Target/User";
 import DFSLoader from "./ServerLoader/Target/DFS";
 import DBLoader from "./ServerLoader/Target/Mysql";
 import MQTTLoader from "./ServerLoader/Target/MQTT";
-import TOURLoader from "./ServerLoader/Target/TOUR";
+import MongoLoader from "./ServerLoader/Target/Mongo";
 
 import Logger from ".//modules/Logger";
 import MQTT from "./ServerLoader/Target/MQTT";
@@ -35,12 +35,9 @@ import MQTT from "./ServerLoader/Target/MQTT";
     }
 
     // MQTT Messaging Protocol
-    if (["TOUR"].indexOf(Config.SERVER_TYPE) >= 0) {
+    if (["MONGO"].indexOf(Config.SERVER_TYPE) >= 0) {
         Logger.info(Config.SERVER_TYPE + ' Is Loading')
-        await TOURLoader();
-        await DBLoader();
-
+        await MongoLoader();
     }
-
 
 })();

@@ -13,7 +13,8 @@ if (envFound.error) {
 
 export enum ServerEnum {
     WAS = "WAS",
-    DFS = "DFS"
+    DFS = "DFS",
+    MONGO = "MONGO"
 }
 
 class Config {
@@ -25,6 +26,7 @@ class Config {
     OS_TYPE: string;
     FILE_SIZE: number;
     MQTT_HOST: string;
+    MONGO_URL: string;
 
     //JWT
     JWT: {
@@ -67,6 +69,7 @@ class Config {
         // Global
         this.PORT = parseInt(process.env.PORT, 10);
         this.MQTT_HOST = process.env.MQTT_HOST;
+        this.MONGO_URL = process.env.MONGO_URL;
         this.SERVER_TYPE = process.env.SERVER_TYPE
         this.DEFAULT_FILE_PATH = process.env.DEFAULT_FILE_PATH
         this.FILE_SIZE = parseInt(process.env.FILE_SIZE);
