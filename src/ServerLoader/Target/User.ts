@@ -5,9 +5,10 @@ const app = express();
 
 import Config from "../../../config";
 import Logger from "../../modules/Logger";
+import logger from "../../middlewares/MongoLogging";
 
 import router from "../../routers/controller";
-import MQTT from "./MQTT";
+
 
 
 export default async () => {
@@ -38,6 +39,9 @@ export default async () => {
     app.get("/", (req, res) => {
         res.send("Hello, world!");
     });
+
+// MongoDB 미들웨어 등록
+    app.use(logger);
 
     app.use("/", router);
 
