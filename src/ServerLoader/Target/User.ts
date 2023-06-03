@@ -40,7 +40,7 @@ export default async () => {
         res.send("Hello, world!");
     });
 
-// MongoDB 미들웨어 등록
+    // MongoDB 미들웨어 등록
     app.use(logger);
 
     app.use("/", router);
