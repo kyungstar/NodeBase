@@ -1,6 +1,7 @@
 
 import express from "express";
 import Logger from "../../../src/modules/Logger";
+import logger from "../../middlewares/MongoLogging";
 
 
 export default class ResController {
