@@ -1,12 +1,13 @@
 
-import express from "express";
+import express, {Request} from "express";
 import Logger from "../../../src/modules/Logger";
 import logger from "../../middlewares/MongoLogging";
+import MongoLogging from "../../middlewares/MongoLogging";
 
 
 export default class ResController {
 
-    public errInterpreter(res: express.Response, err: string) {
+    public errInterpreter(req: Request, res: express.Response, err: string) {
 
         try {
             this.err(res, err);
@@ -42,11 +43,15 @@ export default class ResController {
 
     }
 
-    public resultInterpreter(res: express.Response, apiResponse: Object) {
+    public async resultInterpreter(req: Request, res: express.Response, apiResponse: Object) {
+
+        res.locals.data = apiResponse;
+
+        await MongoLogging(req, res);
 
         if (typeof apiResponse === 'object') {
 
-            if((apiResponse as { result: any }).result === false)
+            if ((apiResponse as { result: any }).result === false)
                 return this.false(res, apiResponse);
             else
                 return this.true(res, apiResponse)
@@ -58,7 +63,7 @@ export default class ResController {
     }
 
     // T는 Type의 약자로 다른 언어에서도 제네릭을 선언할 때 관용적으로 많이 사용된다. 이 부분에는 식별자로 사용할 수 있는 것이라면 무엇이든 들어갈 수 있다.
-    public clientReqError<T>(res: express.Response, msg: string) {
+    public clientReqError<T>(req: Request, res: express.Response, msg: string) {
 
         let dto = {
             result: false,

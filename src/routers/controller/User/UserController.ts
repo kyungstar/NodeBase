@@ -29,7 +29,7 @@ class UserController extends ResController {
         };
 
         if (typeof data == 'string') {
-            return this.clientReqError(res, data);
+            return this.clientReqError(req, res, data);
         }
 
         try {
@@ -41,10 +41,10 @@ class UserController extends ResController {
             const mqttExecuter = new MqttExecuter();
 
             MqttExecuter.publishMessage('C/2/H/2', "hello")
-            this.resultInterpreter(res, userData);
+            this.resultInterpreter(req, res, userData);
 
         } catch (err) {
-            this.errInterpreter(res, err);
+            this.errInterpreter(req, res, err);
         }
 
     }
@@ -63,17 +63,17 @@ class UserController extends ResController {
 
 
         if (typeof data == 'string') {
-            return this.clientReqError(res, data);
+            return this.clientReqError(req, res, data);
         }
 
         try {
 
             const mailResult = await MailService.authEmail(data.authType, data.loginId, data.email);
 
-            this.resultInterpreter(res, mailResult);
+            this.resultInterpreter(req, res, mailResult);
 
         } catch (err) {
-            this.errInterpreter(res, err);
+            this.errInterpreter(req, res, err);
         }
 
     }
@@ -104,16 +104,16 @@ class UserController extends ResController {
 
         try {
             if (typeof data == 'string') {
-                return this.clientReqError(res, data);
+                return this.clientReqError(req, res, data);
             }
 
             let userJoinResult = await UserService.Join(data.loginId, data.pwd, data.userType, data.email, data.name, data.nickName, data.phoneNumber, data.gender
                 , data.address, data.addressDetail);
 
-            this.resultInterpreter(res, userJoinResult);
+            this.resultInterpreter(req, res, userJoinResult);
 
         } catch (err) {
-            this.errInterpreter(res, err);
+            this.errInterpreter(req, res, err);
         }
 
     }
@@ -130,7 +130,7 @@ class UserController extends ResController {
 
 
         if (typeof data == 'string') {
-            return this.clientReqError(res, data);
+            return this.clientReqError(req, res, data);
         }
 
 
@@ -138,10 +138,10 @@ class UserController extends ResController {
 
             let accessInfo = await UserService.Access(res, data.loginId, data.pwd);
 
-            this.resultInterpreter(res, accessInfo);
+            this.resultInterpreter(req, res, accessInfo);
 
         } catch (err) {
-            this.errInterpreter(res, err);
+            this.errInterpreter(req, res, err);
         }
 
 
@@ -158,16 +158,16 @@ class UserController extends ResController {
             }
 
             if (typeof data == 'string') {
-                return this.clientReqError(res, data);
+                return this.clientReqError(req, res, data);
             }
 
             let emailCheckResult = await UserService.emailCheck(data.email);
 
-            this.resultInterpreter(res, emailCheckResult);
+            this.resultInterpreter(req, res, emailCheckResult);
 
 
         } catch (err) {
-            this.errInterpreter(res, err);
+            this.errInterpreter(req, res, err);
         }
 
     }
@@ -183,16 +183,16 @@ class UserController extends ResController {
             }
 
             if (typeof data == 'string') {
-                this.clientReqError(res, data);
+                this.clientReqError(req, res, data);
             }
 
             let phoneCheckResult = await UserService.phoneCheck(data.phoneNumber);
 
-            this.resultInterpreter(res, phoneCheckResult)
+            this.resultInterpreter(req, res, phoneCheckResult)
 
 
         } catch (err) {
-            this.errInterpreter(res, err);
+            this.errInterpreter(req, res, err);
         }
 
     }
@@ -210,15 +210,15 @@ class UserController extends ResController {
             }
 
             if (typeof data == 'string') {
-                return this.clientReqError(res, data);
+                return this.clientReqError(req, res, data);
             }
 
             let userPwdUpdate = await UserService.updatePwd(data.userId, data.newPwd);
 
-            this.resultInterpreter(res, userPwdUpdate)
+            this.resultInterpreter(req, res, userPwdUpdate)
 
         } catch (err) {
-            this.errInterpreter(res, err);
+            this.errInterpreter(req, res, err);
         }
     }
 
@@ -235,15 +235,15 @@ class UserController extends ResController {
             }
 
             if (typeof data == 'string') {
-                return this.clientReqError(res, data);
+                return this.clientReqError(req, res, data);
             }
 
             let userPwdAuth = await UserService.authPwd(data.loginId, data.pwd);
 
-            this.resultInterpreter(res, userPwdAuth)
+            this.resultInterpreter(req, res, userPwdAuth)
 
         } catch (err) {
-            this.errInterpreter(res, err);
+            this.errInterpreter(req, res, err);
         }
     }
 
@@ -264,11 +264,11 @@ class UserController extends ResController {
             }
 
             if (typeof data == 'string') {
-                return this.clientReqError(res, data);
+                return this.clientReqError(req, res, data);
             }
 
         } catch (err) {
-            this.errInterpreter(res, err);
+            this.errInterpreter(req, res, err);
         }
     }
 

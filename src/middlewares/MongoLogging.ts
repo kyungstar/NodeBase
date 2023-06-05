@@ -4,7 +4,7 @@ import Logger from "../modules/Logger";
 
 
 
-const logger = async (req: Request, res: Response, next: NextFunction) => {
+const logger = async (req: Request, res: Response) => {
     const {method, url, body, query, params} = req;
     const { statusCode, statusMessage } = res; // 추가: 응답 데이터를 가져옴
     const headers = res.getHeaders(); // 수정: res.getHeaders()를 사용하여 헤더 가져오기
@@ -20,7 +20,7 @@ const logger = async (req: Request, res: Response, next: NextFunction) => {
 
     const log = {
         method,
-        url,
+        path: '/api' + url,
         body,
         query,
         params,
@@ -42,7 +42,6 @@ const logger = async (req: Request, res: Response, next: NextFunction) => {
     else
         Logger.error(mongoResult);
 
-    next();
 
 
 };
