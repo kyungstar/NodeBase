@@ -146,17 +146,17 @@ class QueryMaker extends ResController{
             for (let k in targetObj) {
                 try {
                     if (targetObj[k][0] === '\\')
-                        query += k + " = " + targetObj[k].slice(1, targetObj[k].length) + 'AND';
+                        query += k + " = " + targetObj[k].slice(1, targetObj[k].length) + ' AND ';
                     else
-                        query += k + " = " + escape(targetObj[k]) + 'AND';
+                        query += k + " = " + escape(targetObj[k]) + ' AND ';
 
                 } catch (err) {
-                    query += k + " = " + escape(targetObj[k]) + 'AND';
+                    query += k + " = " + escape(targetObj[k]) + 'AND ';
 
                 }
             }
 
-            query = query.slice(0, -3);
+            query = query.slice(0, -4);
 
             return query;
 

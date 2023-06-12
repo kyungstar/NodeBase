@@ -13,14 +13,14 @@ if (envFound.error) {
 
 export enum ServerEnum {
     WAS = "WAS",
-    DFS = "DFS",
-    MONGO = "MONGO"
+    DFS = "DFS"
 }
 
 class Config {
 
     // Global
     PORT: number;
+    DOCS_PORT: number;
     SERVER_TYPE: string;
     DEFAULT_FILE_PATH: string;
     OS_TYPE: string;
@@ -63,11 +63,18 @@ class Config {
         FILE_CNT: string;
     }
 
+    ENCRYPT: {
+        ITERATIONS: number;
+        KEY_LENGTH: number;
+        DIGEST: string;
+        ENCRYPT_KEY: string;
+    }
 
     constructor() {
 
         // Global
         this.PORT = parseInt(process.env.PORT, 10);
+        this.DOCS_PORT = parseInt(process.env.DOCS_PORT, 10);
         this.MQTT_HOST = process.env.MQTT_HOST;
         this.MONGO_URL = process.env.MONGO_URL;
         this.SERVER_TYPE = process.env.SERVER_TYPE
@@ -105,6 +112,13 @@ class Config {
             LEVEL: process.env.LEVEL,
             FILE_SIZE: process.env.FILE_SIZE,
             FILE_CNT: process.env.FILE_CNT
+        }
+
+        this.ENCRYPT = {
+            ITERATIONS: parseInt(process.env.ITERATIONS),
+            KEY_LENGTH: parseInt(process.env.KEY_LENGTH),
+            DIGEST: process.env.DIGEST,
+            ENCRYPT_KEY: process.env.ENCRYPT_KEY
         }
 
     }

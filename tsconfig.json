@@ -33,7 +33,7 @@
     // 실험적인 데코레이터를 사용할 수 있도록 합니다.
     "experimentalDecorators": true,
     //데코레이터 메타데이터를 생성하도록 합니다.
-    "emitDecoratorMetadata": true
+    "emitDecoratorMetadata": true,
   }, // 컴파일 대상 파일을 지정합니다. "Src/**/*"는 Src 디렉토리의 모든 파일과 하위 디렉토리의 파일을 대상으로 합니다.
   "include": [
     "src/routers/**/*.ts"

@@ -1,9 +1,8 @@
-//import UtilController from "../../controller/UtilController";
+
 import Config from "../../../../config"
 import DB from "../../../modules/Mysql";
 import QM from "../../../modules/QueryMaker";
 import MailService from "../mail/MailService";
-import ResController from "../../controller/ResController";
 import Logger from "../../../modules/Logger";
 import {createToken, JwtModel} from "../../../middlewares/JwtAuth";
 import ResultBox from "../../dto/ResultBox";

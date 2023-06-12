@@ -41,10 +41,10 @@ class UserController extends ResController {
             const mqttExecuter = new MqttExecuter();
 
             MqttExecuter.publishMessage('C/2/H/2', "hello")
-            this.resultInterpreter(req, res, userData);
+            await this.resultInterpreter(req, res, userData);
 
         } catch (err) {
-            this.errInterpreter(req, res, err);
+            await this.errInterpreter(req, res, err);
         }
 
     }
