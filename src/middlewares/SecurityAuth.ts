@@ -11,12 +11,12 @@ import Logger from "../modules/Logger";
 export default class SecurityAuth extends ResultBox {
 
 
-    public static async getEncryptPwd(pwd: string) {
+    public static async getEncryptPwd(userId: string, pwd: string) {
 
         try {
 
             // 문자열을 바이트 배열로 변환
-            const byteArr = Buffer.from(Config.ENCRYPT.ENCRYPT_KEY, 'utf-8');
+            const byteArr = Buffer.from(userId, 'utf-8');
 
             // 바이트 배열을 16진수 문자열로 변환
             const salt = byteArr.toString('hex');
